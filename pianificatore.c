@@ -1,17 +1,46 @@
 /*
- * NOTE:
+ *                            UTILIZZO
+ * 
+ * 	1.	Serve un file degli ordini che non abbia piu di 10 ordini.
+ * 		Ogni ordine deve essere su una riga e deve essere fatto cosi:
+ * 														
+ * 				      	  Ordini.txt
+ * 						 _____________
+ * 						| x1,y1,z1,t1 |
+ * 						| x2,y2,z2,t2 |
+ * 						| x3,y3,z3,t3 |
+ * 						|	  ...	  |
+ * 						|	  ...	  |
+ * 						|     ...	  | 
+ * 						|			  | 
+ * 		
+ * 		dove, x: identificativo prodotto
+ * 			  y: tempo di produzione del prodotto
+ * 		      z: scadenza del tempo di produzione
+ * 			  t: priorita del prodotto
+ * 
+ * 
+ *	2.	Per avviare il programma:
+ * 					./nomeprogramma file.txt
+ * 
+ * 
+ * 
+ * 								NOTE
+ * 
  * Il flag DEBUG in prossimita di alcune funzioni indica che sono funzioni
  * utili solo durante la fase di debug e quindi sono commentate se il
  * programma va eseguito normalmente
  * 
- * CASISTICHE DA RIVEDERE
+ * 
+ * 
+ * 						CASISTICHE DA RIVEDERE
+ * 
  * 1. Se le slot totali dei prodotti superano le slot massime (100)
  * 2. Modalita di uscita dal file
  * 3. Punto bonus - I risultati non sono salvati da nessuna parte
  * 4. Allocazione dinamica degli array?
  * 5. Menu di visualizzazione
  * 
- * DOMANDA FINALE:
  * E' realizzabile in ASM o ci sono modifiche da fare?
  *
  */
