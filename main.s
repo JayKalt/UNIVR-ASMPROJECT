@@ -29,7 +29,7 @@ conteggio_caratteri:
 	
 	movb (%ecx, %edx), %al
 	
-	jz fine_conteggio:
+	jz fine_conteggio
 	
 	incl %edx
 	jmp conteggio_caratteri
@@ -49,18 +49,3 @@ finito_conteggio:
 	movl %ebp, %esp
 	popl %ebp
 	ret
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
