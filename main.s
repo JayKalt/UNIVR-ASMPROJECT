@@ -1,14 +1,11 @@
 .section .data
 	new_line_char:	.byte 10
-	input_file: .string ""
-
 
 .section .text
 	.global _start
 _start:
 	movl %esp, %ebp
 	addl $8, %esp
-	leal input_file, %eax
 	movl (%esp), %eax
 	
 	call stampa_parametro
