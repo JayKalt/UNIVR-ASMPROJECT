@@ -18,6 +18,7 @@ _start:
 	int $0x80
 	
 .type stampa_parametro, @function
+stampa_parametro:
 	pushl %ebp
 	movl %esp, %ebp
 	movl 8(%ebp), %ecx
