@@ -11,7 +11,7 @@ _start:
 	leal input_file, %eax
 	movl (%esp), %eax
 	
-	call stampa
+	call stampa_parametro
 	
 	movl $1, %eax
 	movl $0, %ebx
@@ -34,7 +34,7 @@ conteggio_caratteri:
 	incl %edx
 	jmp conteggio_caratteri
 
-finito_conteggio:
+fine_conteggio:
 	movl $4, %eax
 	movl $1, %ebx
 	
