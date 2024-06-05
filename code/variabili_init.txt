@@ -1,0 +1,16 @@
+
+
+	 _______________________________________________________________
+	|			VARIABILI FUNZIONE PER SALVARE IL .TXT				|
+	|_______________________________________________________________|
+	|	NOME		|	TIPO		|	LOCAZIONE	|	PARAMETRO	|
+	|---------------------------------------------------------------|
+	| buffer		|	.string		|	.data		|	NO			|
+	| risultato		|	.int		|	.data		|	NO			|
+	| new_line		|	.byte		|	immediato	|	NO			|
+	| comma			|	.byte		|	immediato	|	NO			|
+	|				|				|				|				|
+	| fd			|	.int		|	registro	|	SI			|
+	| array_valori	|	.space		|	.bss		|	SI			|
+	|				|				|				|				|
+	_________________________________________________________________

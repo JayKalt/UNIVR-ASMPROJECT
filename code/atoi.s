@@ -13,7 +13,7 @@ atoi:
 	subl $48, %eax					# Sottraggo 48 per ottenere il valore decimale
 	movl %eax, %ebx					# Salvo temporaneamente il valore in EBX
 
-	movl 4(%ebp), %eax				# Sposto 4(EBP) cioe' il contenuto della variabile Result in EAX
+	movl 4(%ebp), %eax				# Sposto 4(EBP) cioe il contenuto della variabile Result in EAX
 	movb $10, %dl					# Sposto 10 in DL
 	mulb %dl						# Moltiplico Result
 
