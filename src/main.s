@@ -22,7 +22,7 @@
 	.global _start
 _start:
 
-_opne:
+_opne_file:
 	# Controllo i parametri
 	popl %ebx						# Salvo il numero dei parametri in EBX
 	cmp $2, %ebx					# Verifico se è stato passato almeno un argomento
@@ -40,16 +40,16 @@ _opne:
 	int $0x80						# Kernel interrupt
 
 	# Se tutto va bene, viene caricato in EAX il file descriptor
-	cmp $0, %eax					# Controllo il file descriptor
+	cmp $0, %eax					# Controllo il file descriptor restituito dalla syscall
 	jl _opening_error				# Salto alla fine del programma se ho un errore
 
 	# Altrimenti continua nel codice
 
-_init:
-	# Sezione del codice dedicata alla lettura del file e salvataggio in memoria
-	leal array_prodotti, %esi
-	call array_init
-	movl %eax, numero_prodotti
+_read_file:
+	# Preparo i registri per la call alla funzione 
+	leal array_prodotti, %esi		# Salvo l'indice del array in ESI
+	call init						# Tutti i registri sono pronti, call della funzione
+	movl %eax, numero_prodotti		# Prendo il valore salvato in EAX e lo sposto nella variabile
 
 _close_file: 
 	# Chiudo il file

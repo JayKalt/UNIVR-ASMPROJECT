@@ -1,0 +1,24 @@
+
+--------------------------------------------------------------
+PER CREARE IL FILE
+	Nella directory principale digitare:
+
+		$ make 
+
+PER ESEGUIRE IL FILE
+	Recarsi in bin/ e digitare:
+
+		$ ./pianificatore ../Ordini/Esempio.txt
+
+--------------------------------------------------------------
+
+PER IL DEBUG
+	Recarsi in bin/ e digitare:
+
+		$ gdb -q --args ./pianificatore ../Ordini/Esempio.txt 
+
+PER PULIRE LE CARTELLE
+	Nella directory principale digitare:
+
+		$ make clean
+--------------------------------------------------------------

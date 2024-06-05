@@ -1,24 +1,22 @@
 # ---------------------- #
-# filename: array_init.s #
+# filename: init.s		 #
 # ---------------------- #
 
 .section .data	
 	# Variabili per i numeri
 	result:				.int 0			# Numero convertito in decimale
 	counter:			.int 0			# Numero dei prodotti contati con il '\n'
-	fd:					.int 0
+	fd:					.int 0			# File descriptor
 
 .section .bss
 	buffer:				.string			# Spazio per il buffer input
 
 .section .text
-	.global array_init
-	.type array_init, @function
-array_init:
+	.global init
+	.type init, @function
+init:
 
-	movl %esp, %ebp
-	pushl %ebp
-
+	# Sposto nella variabile fd il valore di EAX (file descriptor del .txt)
 	movl %eax, fd
 
 _read_loop:
@@ -36,34 +34,34 @@ _read_loop:
 	movl buffer, %eax				# Copio il carattere nel buffer in AL
 
 	# Controllo se ho una nuova linea
-	cmpb $10, %al					# Comparo il carattere con '\n'
+	cmpb $10, %al					# Comparo il carattere con '\n' (Decimal ASCII: 10)
 	je _new_line					# Se coincide salto alla etichetta indicata
 
 	# Controllo se ho una virgola
-	cmpb $44, %al					# Comparo il carattere con ','
+	cmpb $44, %al					# Comparo il carattere con ',' (Decimal ASCII: 44)
 	je _store						# Se coincide salto alla etichetta indicata
 
 	# Chiamo la funzione atoi
-	pushl result					# Salvo il valore di result nello stack
+	pushl result					# Salvo il valore del numero nello stack
 	call atoi						# Chiamo la funzoine
-	popl result						# Salvo il risultato in result
+	popl result						# Riprendo il valore del numero aggiornato
 
-	jmp _read_loop
+	jmp _read_loop					# Salto al loop iniziale
 
 _new_line:
 	incw counter					# Incremento il counter
 
 _store:
-	movl result, %eax
-	movl %eax, (%esi)
-	addl $4, %esi
+	# Salvo il numero ottenuto nella cella di memoria del array e incremento
+	movl result, %eax				# Sposto il risultato in EAX
+	movl %eax, (%esi)				# Sposto EAX nel indirizzo di memoria di ESI (array)
+	addl $4, %esi					# Incremento di una cella di memoria ESI
 
 _reset:
 	# Resetto il contenuto di result
-	movl $0, result
-	jmp _read_loop
+	movl $0, result					# Sposto 0 in result
+	jmp _read_loop					# Salto al loop iniziale
 
 _return:
-	popl %ebp 
-	movl counter, %eax
-	ret
+	movl counter, %eax				# Sposto il valore del contatore in EAX
+	ret								# Return
