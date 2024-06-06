@@ -12,11 +12,14 @@
 
 	# Stringhe
 	# Messaggi di errore
-	errore_parametri:		.ascii "Parameters error:\n\t> $ ./final <inputfile.txt>\n\n"
+	errore_parametri:		.ascii "Errore inserimento parametri:\n\t> $ ./final <inputfile.txt>\n\n"
 	errore_parametri_len:	.long . - errore_parametri
 
-	errore_apertura:		.ascii "File open error\n"
+	errore_apertura:		.ascii "Errore apertura file\n"
 	errore_apertura_len:	.long . - errore_apertura
+
+	errore_valori:			.ascii "Errore valori letti\n"
+	errore_valori_len:		.long . - errore_valori
 
 .section .text
 	.global _start
@@ -48,7 +51,9 @@ _opne_file:
 _read_file:
 	# Preparo i registri per la call alla funzione 
 	leal array_prodotti, %esi		# Salvo l'indice del array in ESI
+
 	call init						# Tutti i registri sono pronti, call della funzione
+
 	movl %eax, numero_prodotti		# Prendo il valore salvato in EAX e lo sposto nella variabile
 
 _close_file: 
@@ -57,6 +62,23 @@ _close_file:
 	movl %ebx, %ecx					# File descriptor da chiudere
 	int $0x80						# Kernel interrupt 
 	jmp _exit
+
+_check_values:
+	# Controllo che i valori letti siano conformi agli standard indicati
+	subl $4, %esp
+
+	leal array_prodotti, %eax
+	pushl %eax
+	pushl numero_prodotti
+
+	call validateInput
+
+
+	
+#	cmp $0, %eax
+#	jl _values_error
+
+
 
 _exit_error:
 	# Stampo un messaggio di errore parametri ed esco
@@ -73,6 +95,14 @@ _opening_error:
 	movl $1, %ebx					# File descriptor stdout (terminale)
 	leal errore_apertura, %ecx		# Carico indirizzo della variabile
 	movl errore_apertura_len, %edx	# Lunghezza della stringa
+	int $0x80						# Kernel interrupt
+
+_values_error:
+	# Stampo un messaggio di errore valori inseriti ed esco
+	movl $4, %eax					# Syscall write
+	movl $1, %ebx					# File descriptor stdout (terminale)
+	leal errore_valori, %ecx		# Carico indirizzo della variabile
+	movl errore_valori_len, %edx	# Lunghezza della stringa
 	int $0x80						# Kernel interrupt
 
 _exit:
