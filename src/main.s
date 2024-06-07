@@ -5,6 +5,7 @@
 .section .data
 
 	# Interi
+	fd:							.int 0			# File Descriptor del documento
 	numero_prodotti:			.int 0			# Numero del prodotto
 	array_id_prodotti:			.zero 4 * 10	# Array indici prodotto (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
@@ -25,62 +26,82 @@
 	.global _start
 _start:
 
-_opne_file:
+# ------------------------------------------------------------- #
+# 		PRIMA PARTE: RECUPERO PARAMETRI E APERTURA FILE			#
+# ------------------------------------------------------------- #
+
+_parameters_check:
 	# Controllo i parametri
 	popl %ebx						# Salvo il numero dei parametri in EBX
-	cmp $2, %ebx					# Verifico se è stato passato almeno un argomento
-	jne _exit_error					# Se non ci sono argomenti o sono piu di 2, esco
+	cmpl $2, %ebx					# Verifico se è stato passato almeno un argomento
+	jne _errore_parametri			# Se non ci sono argomenti o sono piu di 2, esco
 
 	# Salvo il nome del file
 	popl %ebx						# Puntatore al primo argomento (nome del programma)
 	popl %ebx						# Puntatore al secondo argomento (nome del file)
 
-	# Apro il file
+_file_open:
 	# A questo punto ho gia in EBX il puntatore al nome del file quindi mi basta
 	# inserire 5 in EAX e azzerare ECX per indicare la modalita di lettura
 	movl $5, %eax					# Syscall file open
 	xorl %ecx, %ecx					# Modalita di apertura del file (O_RDONLY)
 	int $0x80						# Kernel interrupt
 
-	# Se tutto va bene, viene caricato in EAX il file descriptor
-	cmp $0, %eax					# Controllo il file descriptor restituito dalla syscall
-	jl _opening_error				# Salto alla fine del programma se ho un errore
+	# Verifico la return della syscall
+	cmp $0, %eax					# Controllo il valore della return
+	jl _errore_apertura				# Salto alla fine del programma se ho un errore
+	movl %eax, fd					# Altrimenti salvamelo nella variabile
 
-	# Altrimenti continua nel codice
 
-_read_file:
+
+# ------------------------------------------------------------- #
+# 	SECONDA PARTE: LETTURA FILE E INIZZALIZZAZIONE ARRAY		#
+# ------------------------------------------------------------- #
+
+_file_read:
 	# Preparo i registri per la call alla funzione 
-	leal array_prodotti, %esi		# Salvo l'indice del array in ESI
+	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
+	pushl %eax						# salvo sullo stack il fd
 
-	call init						# Tutti i registri sono pronti, call della funzione
+	call init
 
-	movl %eax, numero_prodotti		# Prendo il valore salvato in EAX e lo sposto nella variabile
+	addl $4, %esp					# Ripristino ESP
+	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
 
 _close_file: 
-	# Chiudo il file
+	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	movl %ebx, %ecx					# File descriptor da chiudere
-	int $0x80						# Kernel interrupt 
-	jmp _exit
+	movl fd, %ecx					# File descriptor da chiudere
+	int $0x80						# Kernel interrupt
 
-_check_values:
+
+
+# ------------------------------------------------------------- #
+# 		TERZA PARTE: CONTROLLO DEI VALORI INSERITI				#
+# ------------------------------------------------------------- #
+
+_values_check:
 	# Controllo che i valori letti siano conformi agli standard indicati
-	subl $4, %esp
+	subl $4, %esp					# Creo lo spazio per il valore della return
+	movl $1, (%esp)					# Imposto flag 1 sullo stack
 
-	leal array_prodotti, %eax
-	pushl %eax
-	pushl numero_prodotti
+	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
+	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
 
 	call validateInput
 
+	popl %eax						# Salvo il valore di return in EAX
+	cmp $0, %eax					# Verifico che il flag sia stato abbassato
+	jg _errore_valori				# Se flag > 0 ho un errore
+	jmp _exit						# Altrimenti, tutto ok
 
-	
-#	cmp $0, %eax
-#	jl _values_error
 
 
+# ------------------------------------------------------------- #
+# 				CHIAMATE PER I MESSAGGI DI ERRORE				#
+# ------------------------------------------------------------- #
 
-_exit_error:
+_errore_parametri:
 	# Stampo un messaggio di errore parametri ed esco
 	movl $4, %eax					# Syscall write
 	movl $1, %ebx					# File descriptor stdout (terminale)
@@ -89,21 +110,24 @@ _exit_error:
 	int $0x80						# Kernel interrupt
 	jmp _exit
 
-_opening_error:
+_errore_apertura:
 	# Stampo un messaggio di errore apertura file ed esco
-	movl $4, %eax					# Syscall write
-	movl $1, %ebx					# File descriptor stdout (terminale)
-	leal errore_apertura, %ecx		# Carico indirizzo della variabile
-	movl errore_apertura_len, %edx	# Lunghezza della stringa
-	int $0x80						# Kernel interrupt
+	movl $4, %eax
+	movl $1, %ebx
+	leal errore_apertura, %ecx
+	movl errore_apertura_len, %edx
+	int $0x80
+	jmp _exit
 
-_values_error:
+_errore_valori:
 	# Stampo un messaggio di errore valori inseriti ed esco
-	movl $4, %eax					# Syscall write
-	movl $1, %ebx					# File descriptor stdout (terminale)
-	leal errore_valori, %ecx		# Carico indirizzo della variabile
-	movl errore_valori_len, %edx	# Lunghezza della stringa
-	int $0x80						# Kernel interrupt
+	movl $4, %eax
+	movl $1, %ebx
+	leal errore_valori, %ecx
+	movl errore_valori_len, %edx
+	int $0x80
+	jmp _exit
+
 
 _exit:
 	# Esco dal programma

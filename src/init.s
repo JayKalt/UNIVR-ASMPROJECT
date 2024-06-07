@@ -1,12 +1,11 @@
-# ---------------------- #
-# filename: init.s		 #
-# ---------------------- #
+# ---------------- #
+# filename: init.s #
+# ---------------- #
 
 .section .data	
 	# Variabili per i numeri
 	result:				.int 0			# Numero convertito in decimale
 	counter:			.int 0			# Numero dei prodotti contati con il '\n'
-	fd:					.int 0			# File descriptor
 
 .section .bss
 	buffer:				.string			# Spazio per il buffer input
@@ -16,13 +15,10 @@
 	.type init, @function
 init:
 
-	# Sposto nella variabile fd il valore di EAX (file descriptor del .txt)
-	movl %eax, fd
-
 _read_loop:
 	# Leggo il file
 	movl $3, %eax					# Syscall read
-	movl fd, %ebx					# Sposto il fd in EBX
+	movl (%esp), %ebx				# Sposto il fd in EBX
 	movl $buffer, %ecx				# Buffer di input
 	movl $1, %edx					# Lunghezza massima
 	int $0x80						# Kernel interrupt
@@ -31,7 +27,7 @@ _read_loop:
 	jle _return						# E in caso chiudo il file
 
 	# Sposto il carattere in AL
-	movl buffer, %eax				# Copio il carattere nel buffer in AL
+	movb buffer, %al				# Copio il carattere nel buffer in AL
 
 	# Controllo se ho una nuova linea
 	cmpb $10, %al					# Comparo il carattere con '\n' (Decimal ASCII: 10)
