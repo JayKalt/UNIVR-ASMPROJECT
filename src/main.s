@@ -96,7 +96,6 @@ _values_check:
 	popl %eax						# Salvo il valore di return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
 	jg _errore_valori				# Se flag > 0 ho un errore
-	jmp _exit						# Altrimenti, tutto ok
 
 
 
