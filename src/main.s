@@ -5,9 +5,8 @@
 .section .data
 
 	# Interi
-	fd:							.int 0			# File Descriptor del documento
 	numero_prodotti:			.int 0			# Numero del prodotto
-	array_id_prodotti:			.zero 4 * 10	# Array indici prodotto (massimo 10 prodotti)
+	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
 
 
@@ -58,7 +57,7 @@ _file_open:
 
 
 # ------------------------------------------------------------- #
-# 	SECONDA PARTE: LETTURA FILE E INIZZALIZZAZIONE ARRAY		#
+# 		SECONDA PARTE: LETTURA FILE E INIZZALIZZAZIONE ARRAY	#
 # ------------------------------------------------------------- #
 
 _file_read:
@@ -78,7 +77,7 @@ _close_file:
 
 
 # ------------------------------------------------------------- #
-# 		TERZA PARTE: CONTROLLO DEI VALORI INSERITI				#
+# 			TERZA PARTE: CONTROLLO DEI VALORI INSERITI			#
 # ------------------------------------------------------------- #
 
 _values_check:
@@ -91,31 +90,95 @@ _values_check:
 
 	call validateInput
 
-	popl %eax						# Salvo il valore di return in EAX
+	popl %eax						# Ripristino lo stack recuperando la return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
 	jg _errore_valori				# Se flag > 0 ho un errore
+	jmp _exit
+
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#		DA QUI IN POI SIAMO WORK IN PROGRESS
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
 
 
 
 # ------------------------------------------------------------- #
-# 				INIZIALIZZAZIONE ARRAY DEGLI ID					#
+# 					QUARTA PARTE: MENU ALGORITMI				#
 # ------------------------------------------------------------- #
 
-_id_array_init:
-	# Inizializzo array contenente solo gli id
-	subl $4, %esp
-	movl $1, (%esp)
+_menu:
+	# Stampo il menu
 
+	call print_menu
+
+
+
+
+# ------------------------------------------------------------- #
+# 						ALGORITMO HPF							#
+# ------------------------------------------------------------- #
+
+_hpf_select:
+	# Preparo off-set
+	movl $12, %ebx
+	jmp _array_sort_init
+
+	# Preparo i registri per la call
 	movl numero_prodotti, %eax
 	leal array_prodotti, %esi
-	leal array_id_prodotti, %edi
-
-	call id_init
-
-	popl %eax
-	cmp $0, %eax
-	jg _errore_inserimento_id
 	jmp _exit
+
+# ------------------------------------------------------------- #
+# 						ALGORITMO HPF							#
+# ------------------------------------------------------------- #
+
+_edf_select:
+	# Preparo off-set
+	movl $8, %ebx
+	jmp _array_sort_init
+
+	# Preparo i registri per la call
+	movl numero_prodotti, %eax
+	leal array_prodotti, %esi
+
+# ------------------------------------------------------------- #
+# 				INIZIALIZZAZIONE DEL ARRAY SORT					#
+# ------------------------------------------------------------- #
+
+_array_sort_init:
+	# Inizializzo array contenente solo gli id
+	subl $4, %esp					# Creo lo spazio per il valore della return
+	movl $1, (%esp)					# Imposto flag 1 sullo stack
+
+	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
+	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
+	addl %ebx, %esi					# Mi sposto all'inidirizzo della priorita
+	leal array_sort, %edi			# Salvo indirizzo array id in EDI
+
+	call sort_init
+
+	popl %eax						# Ripristino lo stack recuperando la return in EAX
+	cmp $0, %eax					# Verifico che il flag sia stato abbassato
+	jg _errore_inserimento_id		# Se flag > 0 ho un errore
+	jmp _exit
+
 
 
 # ------------------------------------------------------------- #
