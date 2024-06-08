@@ -18,7 +18,7 @@ main_init:
 _read_loop:
 	# Leggo il file
 	movl $3, %eax					# Syscall read
-	movl (%esp), %ebx				# Sposto il fd in EBX
+	movl 4(%esp), %ebx				# Sposto il fd in EBX
 	movl $buffer, %ecx				# Buffer di input
 	movl $1, %edx					# Lunghezza massima
 	int $0x80						# Kernel interrupt

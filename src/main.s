@@ -53,7 +53,7 @@ _file_open:
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
 	jl _errore_apertura				# Salto alla fine del programma se ho un errore
-	movl %eax, fd					# Altrimenti salvamelo nella variabile
+	pushl %eax						# Salvo il falore del file descriptor sullo stack
 
 
 
@@ -64,17 +64,15 @@ _file_open:
 _file_read:
 	# Preparo i registri per la call alla funzione 
 	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
-	pushl %eax						# salvo sullo stack il fd
 
 	call main_init
 
-	addl $4, %esp					# Ripristino ESP
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
 
 _close_file: 
 	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	movl fd, %ecx					# File descriptor da chiudere
+	popl %ecx						# File descriptor da chiudere
 	int $0x80						# Kernel interrupt
 
 
