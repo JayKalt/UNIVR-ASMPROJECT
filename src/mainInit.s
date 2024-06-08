@@ -1,6 +1,6 @@
-# ---------------- #
-# filename: init.s #
-# ---------------- #
+# -------------------- #
+# filename: mainInit.s #
+# -------------------- #
 
 .section .data	
 	# Variabili per i numeri
@@ -11,9 +11,9 @@
 	buffer:				.string			# Spazio per il buffer input
 
 .section .text
-	.global main_init
-	.type main_init, @function
-main_init:
+	.global mainInit
+	.type mainInit, @function
+mainInit:
 
 _read_loop:
 	# Leggo il file

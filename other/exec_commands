@@ -13,9 +13,9 @@ PER ESEGUIRE IL FILE
 --------------------------------------------------------------
 
 PER IL DEBUG
-	Recarsi in src/ e digitare:
+	Nella directory principale digitare:
 
-		$ gdb -q --args ../bin/pianificatore ../Ordini/Esempio.txt 
+		$ gdb -q --args bin/pianificatore Ordini/Esempio.txt 
 
 PER PULIRE LE CARTELLE
 	Nella directory principale digitare:

@@ -12,16 +12,16 @@
 
 	# Stringhe
 	# Messaggi di errore
-	errore_parametri:			.ascii "Errore inserimento parametri:\n\t> $ ./final <inputfile.txt>\n\n"
+	errore_parametri:			.ascii "\n\n[x] ERRORE: Inserimento parametri:  > $ ./final <inputfile.txt>\n"
 	errore_parametri_len:		.long . - errore_parametri
 
-	errore_apertura:			.ascii "Errore apertura file\n"
+	errore_apertura:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
 	errore_apertura_len:		.long . - errore_apertura
 
-	errore_valori:				.ascii "Errore valori letti\n"
+	errore_valori:				.ascii "\n\n[x] ERRORE: Valori letti non conformi agli standard\n"
 	errore_valori_len:			.long . - errore_valori
 
-	errore_inserimento_id:		.ascii "Errore inserimento id\n"
+	errore_inserimento_id:		.ascii "\n\n[x] ERRORE: Inizializzazione array di ordinamento fallita\n"
 	errore_inserimento_id_len:	.long . - errore_inserimento_id
 
 .section .text
@@ -37,6 +37,7 @@ _parameters_check:
 	popl %ebx						# Salvo il numero dei parametri in EBX
 	cmpl $2, %ebx					# Verifico se è stato passato almeno un argomento
 	jne _errore_parametri			# Se non ci sono argomenti o sono piu di 2, esco
+	call parametersOk				# Altrimenti stampo un messaggio di OK
 
 	# Salvo il nome del file
 	popl %ebx						# Puntatore al primo argomento (nome del programma)
@@ -54,6 +55,7 @@ _file_open:
 	jl _errore_apertura				# Salto alla fine del programma se ho un errore
 	pushl %eax						# Salvo il falore del file descriptor sullo stack
 
+	call fileOpenOk					# Altrimenti stampo un messaggio di OK
 
 
 # ------------------------------------------------------------- #
@@ -64,16 +66,19 @@ _file_read:
 	# Preparo i registri per la call alla funzione 
 	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
 
-	call main_init
+	call mainInit
 
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
+
+	call fileReadOk
 
 _close_file: 
 	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	popl %ecx						# File descriptor da chiudere
+	popl %ebx						# File descriptor da chiudere
 	int $0x80						# Kernel interrupt
 
+	call fileCloseOk
 
 
 # ------------------------------------------------------------- #
@@ -93,7 +98,24 @@ _values_check:
 	popl %eax						# Ripristino lo stack recuperando la return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
 	jg _errore_valori				# Se flag > 0 ho un errore
+	call validateInputOk
+
+
+# ------------------------------------------------------------- #
+# 					QUARTA PARTE: MENU PRINCIPALE				#
+# ------------------------------------------------------------- #
+
+_menu_principale:
+	# Menu principale
+
+	call algChoice
+
+	# Verifico algoritmo inserito
+	cmp $1, %eax
+	je _exit
+	cmp $2, %eax
 	jmp _exit
+
 
 
 #
@@ -115,19 +137,6 @@ _values_check:
 #
 #
 #
-
-
-
-
-# ------------------------------------------------------------- #
-# 					QUARTA PARTE: MENU ALGORITMI				#
-# ------------------------------------------------------------- #
-
-_menu:
-	# Stampo il menu
-
-	call print_menu
-
 
 
 
@@ -172,7 +181,7 @@ _array_sort_init:
 	addl %ebx, %esi					# Mi sposto all'inidirizzo della priorita
 	leal array_sort, %edi			# Salvo indirizzo array id in EDI
 
-	call sort_init
+#	call sort_init
 
 	popl %eax						# Ripristino lo stack recuperando la return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
@@ -181,46 +190,57 @@ _array_sort_init:
 
 
 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#		DA QUI IN POI SIAMO NON SIAMO WORK IN PROGRESS
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+
 # ------------------------------------------------------------- #
-# 				CHIAMATE PER I MESSAGGI DI ERRORE				#
+# 				LABELS PER I MESSAGGI DI ERRORE					#
 # ------------------------------------------------------------- #
 
 _errore_parametri:
-	# Stampo un messaggio di errore parametri ed esco
-	movl $4, %eax					# Syscall write
-	movl $1, %ebx					# File descriptor stdout (terminale)
-	leal errore_parametri, %ecx		# Carico indirizzo della variabile
-	movl errore_parametri_len, %edx	# Lunghezza della stringa
-	int $0x80						# Kernel interrupt
-	jmp _exit
+	leal errore_parametri, %ecx				# Destinazione
+	movl errore_parametri_len, %edx			# Lunghezza
+	jmp _stampa_errore
 
 _errore_apertura:
-	# Stampo un messaggio di errore apertura file ed esco
-	movl $4, %eax
-	movl $1, %ebx
 	leal errore_apertura, %ecx
 	movl errore_apertura_len, %edx
-	int $0x80
-	jmp _exit
+	jmp _stampa_errore
 
 _errore_valori:
-	# Stampo un messaggio di errore valori inseriti ed esco
-	movl $4, %eax
-	movl $1, %ebx
 	leal errore_valori, %ecx
 	movl errore_valori_len, %edx
-	int $0x80
-	jmp _exit
+	jmp _stampa_errore
 
 _errore_inserimento_id:
-	# Stampo un messaggio di errore valori inseriti ed esco
-	movl $4, %eax
-	movl $1, %ebx
 	leal errore_inserimento_id, %ecx
 	movl errore_inserimento_id_len, %edx
-	int $0x80
-	jmp _exit
+	jmp _stampa_errore
 
+_stampa_errore:
+	# Stampo un messaggio a video
+	movl $4, %eax					# Syscall write
+	movl $1, %ebx					# File descriptor stdout (terminale)
+	int $0x80						# Kernel interrupt
 
 _exit:
 	# Esco dal programma

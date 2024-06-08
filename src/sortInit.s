@@ -1,11 +1,11 @@
-# --------------------- #
-# filename: sort_init.s #
-# --------------------- #
+# -------------------- #
+# filename: sortInit.s #
+# -------------------- #
 
 .section .text
-	.global sort_init
-	.type sort_init, @function
-sort_init:
+	.global sortInit
+	.type sortInit, @function
+sortInit:
 
 _start:
 

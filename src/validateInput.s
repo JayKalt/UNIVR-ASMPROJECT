@@ -11,7 +11,6 @@
 #	|___________________________________________________________|
 #
 
-
 .section .text
 	.global validateInput
 	.type validateInput, @function
