@@ -11,9 +11,9 @@
 	buffer:				.string			# Spazio per il buffer input
 
 .section .text
-	.global init
-	.type init, @function
-init:
+	.global main_init
+	.type main_init, @function
+main_init:
 
 _read_loop:
 	# Leggo il file

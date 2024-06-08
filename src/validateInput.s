@@ -26,7 +26,7 @@ _start:
 
 
 
-# Da qui in avanti inizia una cascata di algoritmi per la verifica
+# Da qui in avanti inizia una cascata di istruzioni per la verifica
 # dei valori in ciasuno dei parametri di un prodotto.
 
 _id_validate:
@@ -81,6 +81,6 @@ _loop:
 
 _all_good:
 	# Arrivato a questo punto ho letto tutti i valori con successo
-	# Posso quindi abbassare la flag e tornare al main
+	# Posso quindi abbassare la flag e ritornare al main
 	movl $0, 4(%esp)
 	ret

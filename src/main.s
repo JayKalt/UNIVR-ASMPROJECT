@@ -13,14 +13,17 @@
 
 	# Stringhe
 	# Messaggi di errore
-	errore_parametri:		.ascii "Errore inserimento parametri:\n\t> $ ./final <inputfile.txt>\n\n"
-	errore_parametri_len:	.long . - errore_parametri
+	errore_parametri:			.ascii "Errore inserimento parametri:\n\t> $ ./final <inputfile.txt>\n\n"
+	errore_parametri_len:		.long . - errore_parametri
 
-	errore_apertura:		.ascii "Errore apertura file\n"
-	errore_apertura_len:	.long . - errore_apertura
+	errore_apertura:			.ascii "Errore apertura file\n"
+	errore_apertura_len:		.long . - errore_apertura
 
-	errore_valori:			.ascii "Errore valori letti\n"
-	errore_valori_len:		.long . - errore_valori
+	errore_valori:				.ascii "Errore valori letti\n"
+	errore_valori_len:			.long . - errore_valori
+
+	errore_inserimento_id:		.ascii "Errore inserimento id\n"
+	errore_inserimento_id_len:	.long . - errore_inserimento_id
 
 .section .text
 	.global _start
@@ -63,7 +66,7 @@ _file_read:
 	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
 	pushl %eax						# salvo sullo stack il fd
 
-	call init
+	call main_init
 
 	addl $4, %esp					# Ripristino ESP
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
@@ -98,6 +101,27 @@ _values_check:
 
 
 # ------------------------------------------------------------- #
+# 				INIZIALIZZAZIONE ARRAY DEGLI ID					#
+# ------------------------------------------------------------- #
+
+_id_array_init:
+	# Inizializzo array contenente solo gli id
+	subl $4, %esp
+	movl $1, (%esp)
+
+	movl numero_prodotti, %eax
+	leal array_prodotti, %esi
+	leal array_id_prodotti, %edi
+
+	call id_init
+
+	popl %eax
+	cmp $0, %eax
+	jg _errore_inserimento_id
+	jmp _exit
+
+
+# ------------------------------------------------------------- #
 # 				CHIAMATE PER I MESSAGGI DI ERRORE				#
 # ------------------------------------------------------------- #
 
@@ -125,6 +149,15 @@ _errore_valori:
 	movl $1, %ebx
 	leal errore_valori, %ecx
 	movl errore_valori_len, %edx
+	int $0x80
+	jmp _exit
+
+_errore_inserimento_id:
+	# Stampo un messaggio di errore valori inseriti ed esco
+	movl $4, %eax
+	movl $1, %ebx
+	leal errore_inserimento_id, %ecx
+	movl errore_inserimento_id_len, %edx
 	int $0x80
 	jmp _exit
 
