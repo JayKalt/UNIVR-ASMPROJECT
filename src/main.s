@@ -4,7 +4,6 @@
 
 .section .data
 	# Interi
-	fd:							.int 0			# File Descriptor
 	algoritmo:					.int 0			# Numero del algoritmo di ordinamento scelto
 	numero_prodotti:			.int 0			# Numero del prodotto
 	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
@@ -51,7 +50,7 @@ _file_open:
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
 	jl _errore_apertura				# Salto alla fine del programma se ho un errore
-	movl %eax, fd					# Salvo il falore del file descriptor sullo stack
+	pushl %eax						# Salvo il falore del file descriptor sullo stack
 
 
 
@@ -62,17 +61,15 @@ _file_open:
 _file_read:
 	# Preparo i registri per la call alla funzione 
 	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
-	pushl %eax						# Salvo sullo stack il fd
 
 	call mainInit
 
-	addl $4, %esp					# Ripristino ESP
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
 
 _close_file: 
 	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	movl fd, %ebx					# File descriptor da chiudere
+	popl %ebx						# File descriptor da chiudere
 	int $0x80						# Kernel interrupt
 
 
