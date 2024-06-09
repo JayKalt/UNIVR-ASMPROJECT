@@ -158,7 +158,7 @@ _sort_init:
 _hpf:
 	# Chiamo algoritmo HPF
 	call hpf
-	jmp _test
+	jmp _exit
 
 _edf:
 	# Chiamo algoritmo EDF
@@ -168,7 +168,7 @@ _edf:
 
 
 # ------------------------------------------------------------- #
-# 					 TESTING IN PROGRESS						#
+# 						 WORK IN PROGRESS						#
 # ------------------------------------------------------------- #
 
 _test:

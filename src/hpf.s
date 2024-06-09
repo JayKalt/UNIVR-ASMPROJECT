@@ -16,15 +16,16 @@ _init:
 	xorl %ecx, %ecx
 	xorl %edx, %edx
 
-	# Decremento di 1 indice massim
-	subl $1, 4(%ebp)
+	# Decremento di 1 indice massimo
+#	subl $1, 4(%ebp)
 
 _loop1:
-	# Verifico che indice BASE < indice massimo
+	# Verifico che indice BASE <= indice massimo
 	cmp 4(%ebp), %ecx
 	jge _end
+	# !!! senza sub di indice massimo metto JGE !!!
 
-	# Recupero il valore del indirizzo e lo salvo in EAX
+	# Recupero il valore del indirizzo BASE e lo salvo in EAX
 	movl (%esi, %ecx, 4), %eax			# Ho indirizzo BASE
 	movl (%eax), %eax					# Ho il valore del indirizzo BASE
 
@@ -35,7 +36,7 @@ _loop1:
 _loop2:
 	# Verifico se posso fare uno swap tra BASE e BASE + OFF-SET
 
-	# Recupero il valore di BASE + OFF-SET
+	# Recupero il valore di BASE + OFF-SET e lo salvo in EBX
 	movl (%esi, %edx, 4), %ebx			# Ho indirizzo BASE + OFF-SET
 	movl (%ebx), %ebx					# Ho il valore del indirizzo BASE + OFF-SET
 
@@ -59,7 +60,7 @@ _cmp_expiry:
 	cmp %eax, %ebx						# Confronto i due valori
 	je _cmp_prod_time					# Se sono uguali, confronto per tempo di produzione
 	jl _swap							# Se (BASE + OFF-SET) < (BASE), faccop lo swap
-	jg _cmp_prod_time					# Se (BASE + OFF-SET) > (BASE), salto al prossimo OFF-SET 
+	jg _base_reset						# Se (BASE + OFF-SET) > (BASE), salto al prossimo OFF-SET 
 
 _cmp_prod_time:
 	# Faccio la compare con il tempo di produzione
@@ -72,19 +73,25 @@ _cmp_prod_time:
 	movl (%ebx), %ebx					# Ho il valore del indirizzo OFF-SET
 
 	cmp %eax, %ebx						# Confronto i due valori
-	jge _next_off						# Se sono uguali o (BASE + OFF-SET) > (BASE), salto al prossimo OFF-SET
+	jge _base_reset						# Se sono uguali o (BASE + OFF-SET) > (BASE), salto al prossimo OFF-SET
 	jl _swap							# Se (BASE + OFF-SET) < (BASE), faccio lo swap
 
 _swap:
-	movl (%esi, %ecx, 4), %eax			# Sposto in EAX BASE
-	movl (%esi, %edx, 4), %ebx			# Sposto in EBX OFF-SET
-	movl %eax, (%esi, %edx, 4)			# Sposto BASE in OFF-SET
-	movl %ebx, (%esi, %ecx, 4)			# Sposto OFF-SET in BASE
+	movl (%esi, %ecx, 4), %eax			# Sposto BASE in EAX 
+	movl (%esi, %edx, 4), %ebx			# Sposto OFF-SET in EBX 
+	movl %eax, (%esi, %edx, 4)			# Sposto EAX in OFF-SET
+	movl %ebx, (%esi, %ecx, 4)			# Sposto EBX in BASE
+
+_base_reset:
+	# Ripristino il valore del indirizzo BASE in EAX
+	movl (%esi, %ecx, 4), %eax			# Ho indirizzo BASE
+	movl (%eax), %eax					# Ho il valore del indirizzo BASE
 
 _next_off:
 	incl %edx							# Incremento OFF-SET
 	cmp 4(%ebp), %edx					# Verifico che OFF-SET sia ok
-	jl _loop2							# Se ok, continua loop2 
+	jle _loop2							# Se ok, continua loop2 
+	# !!! senza sub di indice massimo metto JLE !!!
 
 	incl %ecx							# Altrimenti passa alla prossima BASE
 	jmp _loop1							# Ricomincia loop1

@@ -8,9 +8,6 @@ OBJ = obj/main.o obj/mainInit.o obj/atoi.o obj/validateInput.o obj/sortInit.o ob
 $(EXE): $(OBJ)
 	$(LD) -o bin/$(EXE) $(OBJ)
 
-# -------------------------------------------------------
-# LE FUNZIONI DELLA PRIMA GRANDE PARTE
-# -------------------------------------------------------
 obj/main.o: src/main.s
 	$(AS) -o obj/main.o src/main.s
 obj/mainInit.o: src/mainInit.s
