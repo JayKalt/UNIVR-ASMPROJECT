@@ -14,8 +14,9 @@ _start:
 	je _all_good			# Se si, passa al etichetta
 	subb $1, %al			# Altrimenti continuo e decremento il counter
 
-	movl (%esi), %ebx		# Sposto il contenuto del array sorgente prodotto in EBX
-	movl %ebx, (%edi)		# Sposto EBX nel array di destinazione 
+	movl %esi, (%edi)		# Sposto indirizzo di ESI nel contenuto del indirizzo di EDI
+							# ovvero sposto indirizzo del parametro del array sorgente nel
+							# indice del array di destinazione
 
 _loop:
 	# Incremeneto al ID successivo entrambi gli array e riprendo il ciclo

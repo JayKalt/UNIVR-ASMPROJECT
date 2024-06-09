@@ -3,15 +3,14 @@
 # ---------------- #
 
 .section .data
-
 	# Interi
+	fd:							.int 0			# File Descriptor
+	algoritmo:					.int 0			# Numero del algoritmo di ordinamento scelto
 	numero_prodotti:			.int 0			# Numero del prodotto
 	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
 
-
 	# Stringhe
-	# Messaggi di errore
 	errore_parametri:			.ascii "\n\n[x] ERRORE: Inserimento parametri:  > $ ./final <inputfile.txt>\n"
 	errore_parametri_len:		.long . - errore_parametri
 
@@ -37,7 +36,6 @@ _parameters_check:
 	popl %ebx						# Salvo il numero dei parametri in EBX
 	cmpl $2, %ebx					# Verifico se è stato passato almeno un argomento
 	jne _errore_parametri			# Se non ci sono argomenti o sono piu di 2, esco
-	call parametersOk				# Altrimenti stampo un messaggio di OK
 
 	# Salvo il nome del file
 	popl %ebx						# Puntatore al primo argomento (nome del programma)
@@ -53,9 +51,8 @@ _file_open:
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
 	jl _errore_apertura				# Salto alla fine del programma se ho un errore
-	pushl %eax						# Salvo il falore del file descriptor sullo stack
+	movl %eax, fd					# Salvo il falore del file descriptor sullo stack
 
-	call fileOpenOk					# Altrimenti stampo un messaggio di OK
 
 
 # ------------------------------------------------------------- #
@@ -65,20 +62,19 @@ _file_open:
 _file_read:
 	# Preparo i registri per la call alla funzione 
 	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
+	pushl %eax						# Salvo sullo stack il fd
 
 	call mainInit
 
+	addl $4, %esp					# Ripristino ESP
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
-
-	call fileReadOk
 
 _close_file: 
 	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	popl %ebx						# File descriptor da chiudere
+	movl fd, %ebx					# File descriptor da chiudere
 	int $0x80						# Kernel interrupt
 
-	call fileCloseOk
 
 
 # ------------------------------------------------------------- #
@@ -98,7 +94,7 @@ _values_check:
 	popl %eax						# Ripristino lo stack recuperando la return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
 	jg _errore_valori				# Se flag > 0 ho un errore
-	call validateInputOk
+
 
 
 # ------------------------------------------------------------- #
@@ -110,105 +106,89 @@ _menu_principale:
 
 	call algChoice
 
-	# Verifico algoritmo inserito
-	cmp $1, %eax
-	je _exit
-	cmp $2, %eax
-	jmp _exit
-
-
-
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#		DA QUI IN POI SIAMO WORK IN PROGRESS
-#
-#
-#
-#
-#
-#
-#
-#
-#
+	movl %eax, algoritmo
 
 
 
 # ------------------------------------------------------------- #
-# 						ALGORITMO HPF							#
+# 		QUINTA PARTE: INIZIALIZZAZIONE DEL SORT ARRAY			#
 # ------------------------------------------------------------- #
+
+_off_set_init:
+	# Inizializzo off-set a seconda del algoritmo scelto
+	cmpb $1, algoritmo
+	jne _edf_select
 
 _hpf_select:
-	# Preparo off-set
+	# Imposto off-set di HPF
 	movl $12, %ebx
-	jmp _array_sort_init
-
-	# Preparo i registri per la call
-	movl numero_prodotti, %eax
-	leal array_prodotti, %esi
-	jmp _exit
-
-# ------------------------------------------------------------- #
-# 						ALGORITMO HPF							#
-# ------------------------------------------------------------- #
+	jmp _sort_init
 
 _edf_select:
-	# Preparo off-set
+	# Imposto off-set di EDF
 	movl $8, %ebx
-	jmp _array_sort_init
 
-	# Preparo i registri per la call
-	movl numero_prodotti, %eax
-	leal array_prodotti, %esi
-
-# ------------------------------------------------------------- #
-# 				INIZIALIZZAZIONE DEL ARRAY SORT					#
-# ------------------------------------------------------------- #
-
-_array_sort_init:
-	# Inizializzo array contenente solo gli id
+_sort_init:
+	# Inizializzo array per il sort
 	subl $4, %esp					# Creo lo spazio per il valore della return
 	movl $1, (%esp)					# Imposto flag 1 sullo stack
 
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
-	addl %ebx, %esi					# Mi sposto all'inidirizzo della priorita
+	addl %ebx, %esi					# Mi sposto al inidirizzo della priorita
 	leal array_sort, %edi			# Salvo indirizzo array id in EDI
 
-#	call sort_init
+	call sortInit
 
 	popl %eax						# Ripristino lo stack recuperando la return in EAX
 	cmp $0, %eax					# Verifico che il flag sia stato abbassato
 	jg _errore_inserimento_id		# Se flag > 0 ho un errore
+
+
+
+# ------------------------------------------------------------- #
+# 					 SESTA PARTE: ALGORITMO						#
+# ------------------------------------------------------------- #
+
+	# Salvo i valori nello stack per la call 
+	leal array_sort, %esi
+	pushl numero_prodotti
+
+	# Scelgo algoritmo
+	cmpb $1, algoritmo
+	jne _edf
+
+_hpf:
+	# Chiamo algoritmo HPF
+	call hpf
+	jmp _test
+
+_edf:
+	# Chiamo algoritmo EDF
+	call hpf
 	jmp _exit
 
 
 
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#		DA QUI IN POI SIAMO NON SIAMO WORK IN PROGRESS
-#
-#
-#
-#
-#
-#
-#
-#
-#
+# ------------------------------------------------------------- #
+# 					 TESTING IN PROGRESS						#
+# ------------------------------------------------------------- #
+
+_test:
+	# Inizializzo array per il sort
+	subl $4, %esp					# Creo lo spazio per il valore della return
+	movl $1, (%esp)					# Imposto flag 1 sullo stack
+
+	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
+	leal array_sort, %esi			# Salvo indirizzo array id in EDI
+
+	call sortRev
+
+	popl %eax						# Ripristino lo stack recuperando la return in EAX
+	cmp $0, %eax					# Verifico che il flag sia stato abbassato
+	jg _errore_inserimento_id		# Se flag > 0 ho un errore
+
+	jmp _exit
 
 
 
