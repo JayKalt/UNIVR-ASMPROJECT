@@ -162,10 +162,11 @@ _hpf:
 	jmp _exit
 
 
-#_edf:
+_edf:
 #	# Chiamo algoritmo EDF
 #	call edf
-#	jmp _exit
+	addl $4, %esp
+	jmp _exit
 
 
 
