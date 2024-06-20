@@ -162,7 +162,7 @@ _hpf:
 
 _edf:
 	# Chiamo algoritmo EDF
-	call edf
+	call hpf
 	jmp _exit
 
 
