@@ -12,16 +12,15 @@ _init:
 	movl %esp, %ebp
 	pushl %ebp
 
+	subl $1, 4(%ebp)
+
 	# Azzero i registri indici
 	xorl %ecx, %ecx
 	xorl %edx, %edx
 
 _loop1:
-	# Verifico che indice BASE <= indice massimo
-	cmp 4(%ebp), %ecx
-	jge _end
-
 	# Recupero il valore del indirizzo BASE e lo salvo in EAX
+
 	movl (%esi, %ecx, 4), %eax			# Ho indirizzo BASE
 	movl (%eax), %eax					# Ho il valore del indirizzo BASE
 
@@ -30,8 +29,6 @@ _loop1:
 	incl %edx							# Incremeneto OFF-SET
 
 _loop2:
-	# Verifico se posso fare uno swap tra BASE e BASE + OFF-SET
-
 	# Recupero il valore di BASE + OFF-SET e lo salvo in EBX
 	movl (%esi, %edx, 4), %ebx			# Ho indirizzo BASE + OFF-SET
 	movl (%ebx), %ebx					# Ho il valore del indirizzo BASE + OFF-SET
@@ -88,8 +85,10 @@ _next_off:
 	cmp 4(%ebp), %edx					# Verifico che OFF-SET sia ok
 	jle _loop2							# Se ok, continua loop2 
 
+_next_i:
 	incl %ecx							# Altrimenti passa alla prossima BASE
-	jmp _loop1							# Ricomincia loop1
+	cmp 4(%ebp), %ecx					# Verifica che BASE sia ok
+	jl _loop1							# Se ok, continua loop1
 
 _end:
 	popl %ebp

@@ -158,12 +158,14 @@ _sort_init:
 _hpf:
 	# Chiamo algoritmo HPF
 	call hpf
+	addl $4, %esp
 	jmp _exit
 
-_edf:
-	# Chiamo algoritmo EDF
-	call hpf
-	jmp _exit
+
+#_edf:
+#	# Chiamo algoritmo EDF
+#	call edf
+#	jmp _exit
 
 
 
