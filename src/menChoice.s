@@ -1,13 +1,13 @@
-# -------------------- #
-# filename: algChoice #
-# -------------------- #
+# ------------------- #
+# filename: menChoice #
+# ------------------- #
 
 .section .data
 	# Scritte del menu
 	menu_header:				.ascii "\n\n+-----------------------------------------------+\n|       PIANIFICATORE  -  MENU PRINCIPALE       |\n+-----------------------------------------------+\n\n"
 	menu_header_len:			.long . - menu_header
 
-	menu_contenuto:				.ascii " Scegli con quale algoritmo ordinare i prodotti:\n\n\t1. HPF: High Priority First\n\t2. EDF: Erliest Deadline First\n\n"
+	menu_contenuto:				.ascii " Scegli con quale algoritmo ordinare i prodotti:\n\n\t1. HPF: High Priority First\n\t\t I prodotti con priorità più alta sono realizzati prima\n\t2. EDF: Erliest Deadline First\n\t\tI prodotti con scadenza piu' prossima sono realizzati prima\n\n"
 	menu_contenuto_len:			.long . - menu_contenuto
 
 	menu_scelta:				.ascii "\tInserisci opzione --> "
@@ -17,9 +17,9 @@
 	menu_scelta_errore_len:		.long . - menu_scelta_errore
 
 .section .text
-	.global algChoice
-	.type algChoice, @function
-algChoice:
+	.global menChoice
+	.type menChoice, @function
+menChoice:
 
 	# Stampo header e contenuto del menu (una volta)
 	movl $4, %eax
@@ -47,7 +47,8 @@ _start_loop:
 	movl $3, %eax				# Syscall scan
 	movl $1, %ebx				# File descriptor (stdin)
 	movl %esi, %ecx				# Destinazione 
-	movl $10, %edx				# Lunghezza
+	movl $10, %edx				# Lunghezza (imposto 10 per evitare eventuali overflow)
+								# Presuppongo che non sia possibile inserire piu' di 10 cifre
 	int $0x80					# Kernel interrupt
 
 	# Visto che si tratta di una stringa devo fare alcuni controlli

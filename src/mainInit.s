@@ -3,7 +3,7 @@
 # -------------------- #
 
 .section .data	
-	# Variabili per i numeri
+	# Integer
 	result:				.int 0			# Numero convertito in decimale
 	counter:			.int 0			# Numero dei prodotti contati con il '\n'
 

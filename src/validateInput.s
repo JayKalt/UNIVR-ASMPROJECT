@@ -17,7 +17,6 @@
 validateInput:
 
 _start:
-
 	# Verifico le condizioni del ciclo
 	cmpb $0, %al			# Verifico se ho controllato tutti i prodotti
 	je _all_good			# Se si, passa al etichetta
@@ -38,7 +37,7 @@ _max_id:
 	ret						# Altrimenti faccio la return senza modificare la flag
 
 _time_validate:
-	# Mi sposto al indice successivo
+	# Mi sposto al campo successivo
 	addl $4, %esi
 _min_time:
 	cmpb $1, (%esi)
@@ -50,7 +49,7 @@ _max_time:
 	ret
 
 _exp_validate:
-	# Mi sposto al indice successivo
+	# Mi sposto al campo successivo
 	addl $4, %esi
 _min_exp:
 	cmpb $1, (%esi)
@@ -62,7 +61,7 @@ _max_exp:
 	ret
 
 _prior_validate:
-	# Mi sposto al indice successivo
+	# Mi sposto al campo successivo
 	addl $4, %esi
 _min_prior:
 	cmpb $1, (%esi)
@@ -74,7 +73,7 @@ _max_prior:
 	ret
 
 _loop:
-	# Incremeneto al ID successivo e riprendo il ciclo
+	# Mi sposto al ID successivo e riprendo il ciclo
 	addl $4, %esi
 	jmp _start
 

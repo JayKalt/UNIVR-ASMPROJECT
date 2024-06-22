@@ -1,11 +1,11 @@
 # --------------- #
-# filename: hpf.s #
+# filename: edf.s #
 # --------------- #
 
 .section .text
-	.global hpf
-	.type hpf, @function
-hpf:
+	.global edf
+	.type edf, @function
+edf:
 
 _init:
 	# Carico sullo stack EBP e lo libero
@@ -32,36 +32,36 @@ _loop2:
 	movl (%esi, %edx, 4), %ebx			# Ho indirizzo di j
 	movl (%ebx), %ebx					# Ho il valore in indirizzo j
 
-_cmp_priority:
-	# Faccio la compare con la priorita
-	cmpl %eax, %ebx						# Confronto i due valori
-	je _cmp_expiry						# Se sono uguali, confronto per scadenza
-	jl _next_j							# Se campo[j] < campo[i], j++
-	jg _swap							# Se campo[j] > campo[i], faccio lo swap
-
 _cmp_expiry:
 	# Faccio la compare con la scadenza
+	cmpl %eax, %ebx						# Confronto i due valori
+	je _cmp_prior						# Se sono uguali, confronto per priorita
+	jg _next_j							# Se campo[j] < campo[i], j++
+	jl _swap							# Se campo[j] > campo[i], faccio lo swap
+
+_cmp_prior:
+	# Faccio la compare con la priorita
 	movl (%esi, %ecx, 4), %eax			# Ricalcolo i
-	subl $4, %eax						# Mi sposto nel campo corretto
+	addl $4, %eax						# Mi sposto nel campo corretto
 	movl (%eax), %eax					# Ho il valore in indirizzo i
 
 	movl (%esi, %edx, 4), %ebx			# Ricalcolo j
-	subl $4, %ebx						# Mi sposto nel campo corretto
+	addl $4, %ebx						# Mi sposto nel campo corretto
 	movl (%ebx), %ebx					# Ho il valore in indirizzo j
 
 	cmp %eax, %ebx						# Confronto i due valori
 	je _cmp_prod_time					# Se sono uguali, confronto per tempo di produzione
-	jl _swap							# Se campo[j] < campo[i], faccio lo swap
-	jg _base_refresh					# Se campo[j] > campo[i], ripristino valore iniziale di i e j++
+	jg _swap							# Se campo[j] > campo[i], faccio lo swap
+	jl _base_refresh					# Se campo[j] < campo[i], ripristino valore iniziale di i e j++
 
 _cmp_prod_time:
 	# Faccio la compare con il tempo di produzione
 	movl (%esi, %ecx, 4), %eax			# Ricalcolo i
-	subl $8, %eax						# Mi sposto nel campo corretto
+	subl $4, %eax						# Mi sposto nel campo corretto
 	movl (%eax), %eax					# Ho il valore del indirizzo i
 
 	movl (%esi, %edx, 4), %ebx			# Ricalcolo j
-	subl $8, %ebx						# Mi sposto campo corretto
+	subl $4, %ebx						# Mi sposto campo corretto
 	movl (%ebx), %ebx					# Ho il valore del indirizzo j
 
 	cmp %eax, %ebx						# Confronto i due valori

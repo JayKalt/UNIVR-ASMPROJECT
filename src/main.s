@@ -3,24 +3,21 @@
 # ---------------- #
 
 .section .data
-	# Interi
+	# Integers
 	algoritmo:					.int 0			# Numero del algoritmo di ordinamento scelto
 	numero_prodotti:			.int 0			# Numero del prodotto
 	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
 
-	# Stringhe
-	errore_parametri:			.ascii "\n\n[x] ERRORE: Inserimento parametri:  > $ ./final <inputfile.txt>\n"
-	errore_parametri_len:		.long . - errore_parametri
+	# Strings
+	parameters_err:				.ascii "\n\n[x] ERRORE: Inserimento parametri:  > $ ./final <inputfile.txt>\n"
+	parameters_err_len:			.long . - parameters_err
 
-	errore_apertura:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
-	errore_apertura_len:		.long . - errore_apertura
+	file_opening_err:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
+	file_opening_err_len:		.long . - file_opening_err
 
-	errore_valori:				.ascii "\n\n[x] ERRORE: Valori letti non conformi agli standard\n"
-	errore_valori_len:			.long . - errore_valori
-
-	errore_inserimento_id:		.ascii "\n\n[x] ERRORE: Inizializzazione array di ordinamento fallita\n"
-	errore_inserimento_id_len:	.long . - errore_inserimento_id
+	input_validate_err:			.ascii "\n\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
+	input_validate_err_len:		.long . - input_validate_err
 
 .section .text
 	.global _start
@@ -30,11 +27,11 @@ _start:
 # 		PRIMA PARTE: RECUPERO PARAMETRI E APERTURA FILE			#
 # ------------------------------------------------------------- #
 
-_parameters_check:
+_parameters_validation:
 	# Controllo i parametri
 	popl %ebx						# Salvo il numero dei parametri in EBX
 	cmpl $2, %ebx					# Verifico se è stato passato almeno un argomento
-	jne _errore_parametri			# Se non ci sono argomenti o sono piu di 2, esco
+	jne _parameters_err				# Se non ci sono argomenti o sono piu di 2, esco
 
 	# Salvo il nome del file
 	popl %ebx						# Puntatore al primo argomento (nome del programma)
@@ -49,7 +46,7 @@ _file_open:
 
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
-	jl _errore_apertura				# Salto alla fine del programma se ho un errore
+	jl _file_opening_err			# Salto alla fine del programma se ho un errore
 	pushl %eax						# Salvo il falore del file descriptor sullo stack
 
 
@@ -66,10 +63,10 @@ _file_read:
 
 	movl %eax, numero_prodotti		# Prendo il contatore salvato in EAX e lo sposto nella variabile
 
-_close_file: 
+_file_close: 
 	# Chiudo il file (non mi serve piu accedere al file ormai)
 	movl $6, %eax					# Syscall close
-	popl %ebx						# File descriptor da chiudere
+	popl %ebx						# File descriptor da chiudere (precedentemente salvato sullo stack)
 	int $0x80						# Kernel interrupt
 
 
@@ -78,19 +75,18 @@ _close_file:
 # 			TERZA PARTE: CONTROLLO DEI VALORI INSERITI			#
 # ------------------------------------------------------------- #
 
-_values_check:
+_values_validation:
 	# Controllo che i valori letti siano conformi agli standard indicati
-	subl $4, %esp					# Creo lo spazio per il valore della return
-	movl $1, (%esp)					# Imposto flag 1 sullo stack
-
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
 
+	pushl $1, %eax					# Imposto il flag a 1
+	
 	call validateInput
 
-	popl %eax						# Ripristino lo stack recuperando la return in EAX
-	cmp $0, %eax					# Verifico che il flag sia stato abbassato
-	jg _errore_valori				# Se flag > 0 ho un errore
+	popl %eax						# Ripristino lo stack
+	cmp $0, %eax					# Verifico la return
+	jg _input_validate_err			# Se flag ancora a 1, ho un errore
 
 
 
@@ -98,10 +94,10 @@ _values_check:
 # 					QUARTA PARTE: MENU PRINCIPALE				#
 # ------------------------------------------------------------- #
 
-_menu_principale:
+_main_menu:
 	# Menu principale
 
-	call algChoice
+	call menChoice
 
 	movl %eax, algoritmo
 
@@ -111,35 +107,27 @@ _menu_principale:
 # 		QUINTA PARTE: INIZIALIZZAZIONE DEL SORT ARRAY			#
 # ------------------------------------------------------------- #
 
-_off_set_init:
-	# Inizializzo off-set a seconda del algoritmo scelto
+_sort_registers_set_up:
+	# Imposto i registri per la call
+	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
+	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
+	leal array_sort, %edi			# Salvo indirizzo array sort in EDI
+
+_field_set_up:
+	# Inizializzo campo a seconda del algoritmo scelto
 	cmpb $1, algoritmo
 	jne _edf_select
 
 _hpf_select:
-	# Imposto off-set di HPF
-	movl $12, %ebx
-	jmp _sort_init
+	# Imposto campo di HPF (priorita -> offset: +12 byte)
+	addl $12, %esi					# Mi sposto al inidirizzo della priorita
+	jmp _sort_array_set_up
 
 _edf_select:
-	# Imposto off-set di EDF
-	movl $8, %ebx
-
-_sort_init:
-	# Inizializzo array per il sort
-	subl $4, %esp					# Creo lo spazio per il valore della return
-	movl $1, (%esp)					# Imposto flag 1 sullo stack
-
-	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
-	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
-	addl %ebx, %esi					# Mi sposto al inidirizzo della priorita
-	leal array_sort, %edi			# Salvo indirizzo array id in EDI
+	# Imposto campo di EDF (scadenza -> offset: +8  byte)
+	addl $8, %esi					# Mi sposto al inidirizzo della priorita
 
 	call sortInit
-
-	popl %eax						# Ripristino lo stack recuperando la return in EAX
-	cmp $0, %eax					# Verifico che il flag sia stato abbassato
-	jg _errore_inserimento_id		# Se flag > 0 ho un errore
 
 
 
@@ -147,9 +135,10 @@ _sort_init:
 # 					 SESTA PARTE: ALGORITMO						#
 # ------------------------------------------------------------- #
 
+_algorithm_set_up:
 	# Salvo i valori nello stack per la call 
-	leal array_sort, %esi
-	pushl numero_prodotti
+	leal array_sort, %esi			# Salvo in ESI indirizzo array per il sort
+	pushl numero_prodotti			# Salvo il numero prodotti nello stack (limite per il ciclo)
 
 	# Scelgo algoritmo
 	cmpb $1, algoritmo
@@ -158,35 +147,39 @@ _sort_init:
 _hpf:
 	# Chiamo algoritmo HPF
 	call hpf
-	addl $4, %esp
-	jmp _exit
-
+	jmp _stack_restore
 
 _edf:
-#	# Chiamo algoritmo EDF
-#	call edf
-	addl $4, %esp
-	jmp _exit
+	# Chiamo algoritmo EDF
+	call edf
 
+_stack_restore:
+	# Ripristino stack
+	addl $4, %esp
+
+	jmp _exit
 
 
 # ------------------------------------------------------------- #
 # 						 WORK IN PROGRESS						#
 # ------------------------------------------------------------- #
 
-_test:
-	# Inizializzo array per il sort
-	subl $4, %esp					# Creo lo spazio per il valore della return
-	movl $1, (%esp)					# Imposto flag 1 sullo stack
+_update_main:
+	# Verifico algoritmo
+	cmpb $1, algoritmo
+	jne _sub12
 
+_push16:
+	pushl $16
+
+_push12:
+	pushl $12
+
+	# Inizializzo registri per il restore
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_sort, %esi			# Salvo indirizzo array id in EDI
 
-	call sortRev
-
-	popl %eax						# Ripristino lo stack recuperando la return in EAX
-	cmp $0, %eax					# Verifico che il flag sia stato abbassato
-	jg _errore_inserimento_id		# Se flag > 0 ho un errore
+#	call sortRest
 
 	jmp _exit
 
@@ -196,28 +189,27 @@ _test:
 # 				LABELS PER I MESSAGGI DI ERRORE					#
 # ------------------------------------------------------------- #
 
-_errore_parametri:
-	leal errore_parametri, %ecx				# Destinazione
-	movl errore_parametri_len, %edx			# Lunghezza
+_parameters_err:
+	leal parameters_err, %ecx				# Source
+	movl parameters_err_len, %edx			# Lunghezza
 	jmp _stampa_errore
 
-_errore_apertura:
-	leal errore_apertura, %ecx
-	movl errore_apertura_len, %edx
+_file_opening_err:
+	leal file_opening_err, %ecx
+	movl file_opening_err_len, %edx
 	jmp _stampa_errore
 
-_errore_valori:
-	leal errore_valori, %ecx
-	movl errore_valori_len, %edx
+_input_validate_err:
+	leal input_validate_err, %ecx
+	movl input_validate_err_len, %edx
 	jmp _stampa_errore
 
-_errore_inserimento_id:
-	leal errore_inserimento_id, %ecx
-	movl errore_inserimento_id_len, %edx
-	jmp _stampa_errore
+_sort_init_error:
+	leal sort_init_error, %ecx
+	movl sort_init_error_len, %edx
 
-_stampa_errore:
-	# Stampo un messaggio a video
+_err_syscall:
+	# Stampo il messaggio di errore a video
 	movl $4, %eax					# Syscall write
 	movl $1, %ebx					# File descriptor stdout (terminale)
 	int $0x80						# Kernel interrupt

@@ -3,7 +3,7 @@ AS = as --32 -gstabs
 LD = ld -m elf_i386
 DEBUG = -gstabs
 
-OBJ = obj/main.o obj/mainInit.o obj/atoi.o obj/validateInput.o obj/sortInit.o obj/algChoice.o obj/hpf.o obj/sortRev.o
+OBJ = obj/main.o obj/mainInit.o obj/atoi.o obj/validateInput.o obj/sortInit.o obj/menChoice.o obj/hpf.o obj/edf.o
 
 $(EXE): $(OBJ)
 	$(LD) -o bin/$(EXE) $(OBJ)
@@ -18,12 +18,16 @@ obj/validateInput.o: src/validateInput.s
 	$(AS) -o obj/validateInput.o src/validateInput.s
 obj/sortInit.o: src/sortInit.s
 	$(AS) -o obj/sortInit.o src/sortInit.s
-obj/algChoice.o: src/algChoice.s
-	$(AS) -o obj/algChoice.o src/algChoice.s
+obj/menChoice.o: src/menChoice.s
+	$(AS) -o obj/menChoice.o src/menChoice.s
 obj/hpf.o: src/hpf.s
 	$(AS) -o obj/hpf.o src/hpf.s
-obj/sortRev.o: src/sortRev.s
-	$(AS) -o obj/sortRev.o src/sortRev.s
+obj/edf.o: src/edf.s
+	$(AS) -o obj/edf.o src/edf.s
+
+# Work in progress
+#obj/sortRev.o: src/sortRev.s
+#	$(AS) -o obj/sortRev.o src/sortRev.s
 
 
 clean:

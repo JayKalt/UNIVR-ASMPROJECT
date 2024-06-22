@@ -1,11 +1,11 @@
 # -------------------- #
-# filename: sortInit.s #
+# filename: sortDef.s #
 # -------------------- #
 
 .section .text
-	.global sortInit
-	.type sortInit, @function
-sortInit:
+	.global sortDef
+	.type sortDef, @function
+sortDef:
 
 _start:
 	# Verifico le condizioni del ciclo
@@ -24,4 +24,6 @@ _start:
 
 _all_good:
 	# Arrivato a questo punto ho letto tutti i valori con successo
+	# Posso quindi abbassare la flag e ritornare al main
+	movl $0, 4(%esp)		# Sposto il valore della return
 	ret
