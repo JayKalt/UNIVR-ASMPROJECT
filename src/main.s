@@ -159,27 +159,34 @@ _stack_restore:
 	addl $4, %esp
 
 
+# ------------------------------------------------------------- #
+# 					WORK IN PROGRESS: SETTIMA PARTE				#
+# ------------------------------------------------------------- #
+
+
 
 # ------------------------------------------------------------- #
-# 						 WORK IN PROGRESS						#
+# 					SETTIMA PARTE: UPDATE ARRAY					#
 # ------------------------------------------------------------- #
 
-_update_main:
 	# Verifico algoritmo
 	cmpb $1, algoritmo
-	jne _select12
+	jne _select8
 
 _select16:
-	movl $16, %ecx
+	movl $12, %edx
 
-_select12:
-	movl $12, %ecx
+_select3:
+	movl $8, %edx
 
-	# Inizializzo registri per il restore
+_update_main_array:
+	# Ripristino degli indirizzi al ID corrispondente
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
-	leal array_sort, %esi			# Salvo indirizzo array id in EDI
+	leal array_sort, %esi			# Salvo indirizzo array sort in ESI
+	leal array_prodotti %edi		# Salvo indirizzo array prodotti in EDI
 
-	call movToId
+	call mainUpdate
+
 
 	jmp _exit
 
