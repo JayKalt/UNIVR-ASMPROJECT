@@ -168,19 +168,19 @@ _stack_restore:
 _update_main:
 	# Verifico algoritmo
 	cmpb $1, algoritmo
-	jne _push12
+	jne _select12
 
-_push16:
-	pushl $16
+_select16:
+	movl $16, %ecx
 
-_push12:
-	pushl $12
+_select12:
+	movl $12, %ecx
 
 	# Inizializzo registri per il restore
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_sort, %esi			# Salvo indirizzo array id in EDI
 
-#	call sortRest
+	call movToId
 
 	jmp _exit
 
