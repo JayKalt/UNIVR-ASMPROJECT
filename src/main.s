@@ -158,7 +158,6 @@ _stack_restore:
 	# Ripristino stack
 	addl $4, %esp
 
-	jmp _exit
 
 
 # ------------------------------------------------------------- #

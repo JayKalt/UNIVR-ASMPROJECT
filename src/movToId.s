@@ -13,7 +13,7 @@ _start:
 	je _all_good			# Se si, passo al etichetta
 	subb $1, %al			# Altrimenti counter--
 
-	subl %eax, (%esi)		# Decremento il contenuto di ESI di n byte (in EAX)
+	subl %ecx, (%esi)		# Decremento il contenuto di ESI di n byte (in EAX)
 	addl $4, %esi			# Aggiorno ESI alla nuova posizione
 
 	jmp _start				# Ritorna al loop iniziale
