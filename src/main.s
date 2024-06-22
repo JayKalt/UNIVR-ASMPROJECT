@@ -80,7 +80,7 @@ _values_validation:
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
 
-	pushl $1, %eax					# Imposto il flag a 1
+	pushl $1						# Imposto il flag a 1
 	
 	call validateInput
 
@@ -121,12 +121,13 @@ _field_set_up:
 _hpf_select:
 	# Imposto campo di HPF (priorita -> offset: +12 byte)
 	addl $12, %esi					# Mi sposto al inidirizzo della priorita
-	jmp _sort_array_set_up
+	jmp _sort_init
 
 _edf_select:
 	# Imposto campo di EDF (scadenza -> offset: +8  byte)
 	addl $8, %esi					# Mi sposto al inidirizzo della priorita
 
+_sort_init:
 	call sortInit
 
 
@@ -167,7 +168,7 @@ _stack_restore:
 _update_main:
 	# Verifico algoritmo
 	cmpb $1, algoritmo
-	jne _sub12
+	jne _push12
 
 _push16:
 	pushl $16
@@ -192,23 +193,19 @@ _push12:
 _parameters_err:
 	leal parameters_err, %ecx				# Source
 	movl parameters_err_len, %edx			# Lunghezza
-	jmp _stampa_errore
+	jmp _print_err
 
 _file_opening_err:
 	leal file_opening_err, %ecx
 	movl file_opening_err_len, %edx
-	jmp _stampa_errore
+	jmp _print_err
 
 _input_validate_err:
 	leal input_validate_err, %ecx
 	movl input_validate_err_len, %edx
-	jmp _stampa_errore
+	jmp _print_err
 
-_sort_init_error:
-	leal sort_init_error, %ecx
-	movl sort_init_error_len, %edx
-
-_err_syscall:
+_print_err:
 	# Stampo il messaggio di errore a video
 	movl $4, %eax					# Syscall write
 	movl $1, %ebx					# File descriptor stdout (terminale)

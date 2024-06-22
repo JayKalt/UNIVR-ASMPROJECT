@@ -7,7 +7,7 @@
 	menu_header:				.ascii "\n\n+-----------------------------------------------+\n|       PIANIFICATORE  -  MENU PRINCIPALE       |\n+-----------------------------------------------+\n\n"
 	menu_header_len:			.long . - menu_header
 
-	menu_contenuto:				.ascii " Scegli con quale algoritmo ordinare i prodotti:\n\n\t1. HPF: High Priority First\n\t\t I prodotti con priorità più alta sono realizzati prima\n\t2. EDF: Erliest Deadline First\n\t\tI prodotti con scadenza piu' prossima sono realizzati prima\n\n"
+	menu_contenuto:				.ascii " Scegli con quale algoritmo ordinare i prodotti:\n\n\t1. HPF: High Priority First\n\t\tI prodotti con priorità più alta sono realizzati prima\n\t2. EDF: Erliest Deadline First\n\t\tI prodotti con scadenza piu' prossima sono realizzati prima\n\n"
 	menu_contenuto_len:			.long . - menu_contenuto
 
 	menu_scelta:				.ascii "\tInserisci opzione --> "
