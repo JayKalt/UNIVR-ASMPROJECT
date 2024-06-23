@@ -3,7 +3,7 @@ AS = as --32 -gstabs
 LD = ld -m elf_i386
 DEBUG = -gstabs
 
-OBJ = obj/main.o obj/mainInit.o obj/atoi.o obj/validateInput.o obj/sortInit.o obj/menChoice.o obj/hpf.o obj/edf.o obj/mainUpdate.o
+OBJ = obj/main.o obj/mainInit.o obj/atoi.o obj/validateInput.o obj/sortInit.o obj/menChoice.o obj/hpf.o obj/edf.o obj/sortUpdate.o obj/penaltyCalc.o obj/outputPrint.o obj/itoa.o
 
 $(EXE): $(OBJ)
 	$(LD) -o bin/$(EXE) $(OBJ)
@@ -24,11 +24,16 @@ obj/hpf.o: src/hpf.s
 	$(AS) -o obj/hpf.o src/hpf.s
 obj/edf.o: src/edf.s
 	$(AS) -o obj/edf.o src/edf.s
+obj/sortUpdate.o: src/sortUpdate.s
+	$(AS) -o obj/sortUpdate.o src/sortUpdate.s
+obj/penaltyCalc.o: src/penaltyCalc.s
+	$(AS) -o obj/penaltyCalc.o src/penaltyCalc.s
 
 # Work in progress
-obj/mainUpdate.o: src/mainUpdate.s
-	$(AS) -o obj/mainUpdate.o src/mainUpdate.s
-
+obj/outputPrint.o: src/outputPrint.s
+	$(AS) -o obj/outputPrint.o src/outputPrint.s
+obj/itoa.o: src/itoa.s
+	$(AS) -o obj/itoa.o src/itoa.s
 
 clean:
 	rm -f obj/*.o bin/$(EXE) core

@@ -4,15 +4,22 @@
 
 .section .data
 	# Integers
-	algoritmo:					.int 0			# Numero del algoritmo di ordinamento scelto
-	numero_prodotti:			.int 0			# Numero del prodotto
+	numero_parametri:			.int 0		# Flag per decidere se salvare output
+	numero_prodotti:			.int 0		# Numero dei prodotti nel file
+	algoritmo:					.int 0		# Numero del algoritmo di ordinamento scelto
+	penalita:					.int 0		# Penalty in euro
+	t_finale:					.int 0		# Tempo complessivo impiegato per completare la lista
+
+	# Array
 	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
 
-	# Strings
-	parameters_err:				.ascii "\n\n[x] ERRORE: Inserimento parametri:  > $ ./final <inputfile.txt>\n"
-	parameters_err_len:			.long . - parameters_err
+	# ASCII
+	output_file:				.long 			# File di output
 
+	parameters_err:				.ascii "\n\n[x] ERRORE: Parametri non correti:\n\tSolo input > $ ./pianificatore <inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
+	parameters_err_len:			.long . - parameters_err
+	
 	file_opening_err:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
 	file_opening_err_len:		.long . - file_opening_err
 
@@ -29,13 +36,15 @@ _start:
 
 _parameters_validation:
 	# Controllo i parametri
-	popl %ebx						# Salvo il numero dei parametri in EBX
-	cmpl $2, %ebx					# Verifico se è stato passato almeno un argomento
-	jne _parameters_err				# Se non ci sono argomenti o sono piu di 2, esco
+	popl numero_parametri			# Salvo il numero dei parametri
+	cmpl $3, numero_parametri		# Verifico se ho piu  di 3 parametri 
+	jg _parameters_err				# Se ho un errore, esco
+	cmpl $2, numero_parametri		# Verifico se ho meno di 2 parametri
+	jl _parameters_err				# Se ho un errore, esco
 
-	# Salvo il nome del file
+	# Inizio a salvare i vari nomi dei file
 	popl %ebx						# Puntatore al primo argomento (nome del programma)
-	popl %ebx						# Puntatore al secondo argomento (nome del file)
+	popl %ebx						# Puntatore al secondo argomento (nome del file di input)
 
 _file_open:
 	# A questo punto ho gia in EBX il puntatore al nome del file quindi mi basta
@@ -47,7 +56,7 @@ _file_open:
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
 	jl _file_opening_err			# Salto alla fine del programma se ho un errore
-	pushl %eax						# Salvo il falore del file descriptor sullo stack
+	pushl %eax						# Salvo il valore del file descriptor sullo stack
 
 
 
@@ -96,9 +105,8 @@ _values_validation:
 
 _main_menu:
 	# Menu principale
-
 	call menChoice
-
+	
 	movl %eax, algoritmo
 
 
@@ -107,7 +115,7 @@ _main_menu:
 # 		QUINTA PARTE: INIZIALIZZAZIONE DEL SORT ARRAY			#
 # ------------------------------------------------------------- #
 
-_sort_registers_set_up:
+_sort_init_set_up:
 	# Imposto i registri per la call
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
@@ -159,38 +167,75 @@ _stack_restore:
 	addl $4, %esp
 
 
-# ------------------------------------------------------------- #
-# 					WORK IN PROGRESS: SETTIMA PARTE				#
-# ------------------------------------------------------------- #
-
-
 
 # ------------------------------------------------------------- #
 # 					SETTIMA PARTE: UPDATE ARRAY					#
 # ------------------------------------------------------------- #
 
+_sort_update_setup:
+	# Ripristino degli indirizzi al ID corrispondente
+	movl numero_prodotti, %ecx		# Salvo il numero dei prodotti in EAX
+	leal array_sort, %esi			# Salvo indirizzo array sort in ESI
+
 	# Verifico algoritmo
 	cmpb $1, algoritmo
 	jne _select8
 
-_select16:
+_select12:
 	movl $12, %edx
+	jmp _sort_update_array
 
-_select3:
+_select8:
 	movl $8, %edx
 
-_update_main_array:
-	# Ripristino degli indirizzi al ID corrispondente
-	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
-	leal array_sort, %esi			# Salvo indirizzo array sort in ESI
-	leal array_prodotti %edi		# Salvo indirizzo array prodotti in EDI
+_sort_update_array:
 
-	call mainUpdate
+	call sortUpdate
 
 
+
+# ------------------------------------------------------------- #
+# 				OTTAVA PARTE: CALCOLO PENALTY					#
+# ------------------------------------------------------------- #
+
+_penalty:
+	#
+	leal array_sort, %esi
+	movl numero_prodotti, %ecx
+	pushl penalita
+	pushl t_finale
+
+	call penaltyCalc
+
+	popl t_finale
+	popl penalita
+
+
+
+# ------------------------------------------------------------- #
+# 						NONA PARTE: OUTPUT						#
+# ------------------------------------------------------------- #
+
+_printOutput:
+	movl algoritmo, %eax
+	leal array_sort, %esi
+	pushl numero_prodotti
+	pushl penalita
+	pushl t_finale
+
+	call outputPrint
+
+	addl $12, %esp
+
+_saveOutput:
+	cmpl $3, numero_prodotti
+	jne	_stat_reset
 	jmp _exit
 
-
+_stat_reset:
+	movl $0, penalita
+	movl $0, t_finale	
+	jmp	_main_menu
 
 # ------------------------------------------------------------- #
 # 				LABELS PER I MESSAGGI DI ERRORE					#
