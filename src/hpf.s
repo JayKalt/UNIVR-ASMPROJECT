@@ -9,10 +9,10 @@ hpf:
 
 _init:
 	# Carico sullo stack EBP e lo libero
-	movl %esp, %ebp
 	pushl %ebp
+	movl %esp, %ebp
 
-	subl $1, 4(%ebp)
+	subl $1, 8(%ebp)
 
 	# Azzero i registri indici
 	xorl %ecx, %ecx
@@ -81,12 +81,12 @@ _base_refresh:
 
 _next_j:
 	incl %edx							# j++
-	cmp 4(%ebp), %edx					# Verifico j ok
+	cmp 8(%ebp), %edx					# Verifico j ok
 	jle _loop2							# Se ok, continua loop2 
 
 _next_i:
 	incl %ecx							# Altrimenti i++
-	cmp 4(%ebp), %ecx					# Verifico i ok
+	cmp 8(%ebp), %ecx					# Verifico i ok
 	jl _loop1							# Se ok, continua loop1
 
 _end:

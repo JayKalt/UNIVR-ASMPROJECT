@@ -10,7 +10,7 @@ sortInit:
 _start:
 	# Verifico le condizioni del ciclo
 	cmpb $0, %al			# Verifico se ho controllato tutti i prodotti
-	je _all_good			# Se si, passo al etichetta
+	je _ret					# Se si, return
 	subb $1, %al			# Altrimenti counter--
 
 	movl %esi, (%edi)		# Sposto indirizzo di ESI nel contenuto del indirizzo di EDI
@@ -22,6 +22,6 @@ _start:
 	addl $4, %edi			# Passo alla cella di memoria sucessiva
 	jmp _start				# Ritorna al loop iniziale
 
-_all_good:
+_ret:
 	# Arrivato a questo punto ho letto tutti i valori con successo
 	ret

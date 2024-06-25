@@ -4,19 +4,24 @@
 
 .section .data
 	# Integers
-	numero_parametri:			.int 0		# Flag per decidere se salvare output
+	# -----------------------------------------------------------------------
+	numero_parametri:			.int 0		# Numero dei parametri inseriti
 	numero_prodotti:			.int 0		# Numero dei prodotti nel file
 	algoritmo:					.int 0		# Numero del algoritmo di ordinamento scelto
-	penalita:					.int 0		# Penalty in euro
-	t_finale:					.int 0		# Tempo complessivo impiegato per completare la lista
+	# -----------------------------------------------------------------------
+	penalty:					.int 0		# Penalty in euro
+	# -----------------------------------------------------------------------
+
 
 	# Array
+	# -----------------------------------------------------------------------
 	array_sort:					.zero 4 * 10	# Array per il sort (massimo 10 prodotti)
 	array_prodotti:				.zero 4 * 40	# Array per i prodotti (massimo 10 prodotti * 4 campi)
+	# -----------------------------------------------------------------------
+
 
 	# ASCII
-	output_file:				.long 			# File di output
-
+	# -----------------------------------------------------------------------
 	parameters_err:				.ascii "\n\n[x] ERRORE: Parametri non correti:\n\tSolo input > $ ./pianificatore <inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
 	parameters_err_len:			.long . - parameters_err
 	
@@ -25,6 +30,7 @@
 
 	input_validate_err:			.ascii "\n\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
 	input_validate_err_len:		.long . - input_validate_err
+	# -----------------------------------------------------------------------
 
 .section .text
 	.global _start
@@ -48,15 +54,16 @@ _parameters_validation:
 
 _file_open:
 	# A questo punto ho gia in EBX il puntatore al nome del file quindi mi basta
-	# inserire 5 in EAX e azzerare ECX per indicare la modalita di lettura
+	# inserire 5 in EAX come codice di open e azzerare ECX per indicare la modalita di lettura
 	movl $5, %eax					# Syscall file open
 	xorl %ecx, %ecx					# Modalita di apertura del file (O_RDONLY)
 	int $0x80						# Kernel interrupt
 
 	# Verifico la return della syscall
 	cmp $0, %eax					# Controllo il valore della return
+									# Se il risultato della syscall >= 0 non ho errori
+									# Mi viene restituito in EAX il file descriptor
 	jl _file_opening_err			# Salto alla fine del programma se ho un errore
-	pushl %eax						# Salvo il valore del file descriptor sullo stack
 
 
 
@@ -66,7 +73,8 @@ _file_open:
 
 _file_read:
 	# Preparo i registri per la call alla funzione 
-	leal array_prodotti, %esi		# Leggo indirizzo di array e sposto in ESI
+	leal array_prodotti, %edi		# Leggo indirizzo di array principale e sposto in EDI
+	pushl %eax						# Salvo il file descriptor sullo stack
 
 	call mainInit
 
@@ -84,17 +92,17 @@ _file_close:
 # 			TERZA PARTE: CONTROLLO DEI VALORI INSERITI			#
 # ------------------------------------------------------------- #
 
-_values_validation:
+_validate_input:
 	# Controllo che i valori letti siano conformi agli standard indicati
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
-	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
+	leal array_prodotti, %esi		# Salvo indirizzo array in ESI questa volta
 
 	pushl $1						# Imposto il flag a 1
 	
 	call validateInput
 
 	popl %eax						# Ripristino lo stack
-	cmp $0, %eax					# Verifico la return
+	cmpb $0, %al					# Verifico il valore della return
 	jg _input_validate_err			# Se flag ancora a 1, ho un errore
 
 
@@ -107,12 +115,15 @@ _main_menu:
 	# Menu principale
 	call menChoice
 	
+	cmpl $0, %eax
+	jz _exit
+
 	movl %eax, algoritmo
 
 
 
 # ------------------------------------------------------------- #
-# 		QUINTA PARTE: INIZIALIZZAZIONE DEL SORT ARRAY			#
+# 			QUINTA PARTE: INIZIALIZZAZIONE ARRAY DI SORT		#
 # ------------------------------------------------------------- #
 
 _sort_init_set_up:
@@ -121,8 +132,8 @@ _sort_init_set_up:
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI
 	leal array_sort, %edi			# Salvo indirizzo array sort in EDI
 
-_field_set_up:
-	# Inizializzo campo a seconda del algoritmo scelto
+_offset_set_up:
+	# Inizializzo offset per il campo a seconda del algoritmo scelto
 	cmpb $1, algoritmo
 	jne _edf_select
 
@@ -169,7 +180,7 @@ _stack_restore:
 
 
 # ------------------------------------------------------------- #
-# 					SETTIMA PARTE: UPDATE ARRAY					#
+# 				SETTIMA PARTE: SORT ARRAY UPDATE				#
 # ------------------------------------------------------------- #
 
 _sort_update_setup:
@@ -183,13 +194,12 @@ _sort_update_setup:
 
 _select12:
 	movl $12, %edx
-	jmp _sort_update_array
+	jmp _sortUpdate
 
 _select8:
 	movl $8, %edx
 
-_sort_update_array:
-
+_sortUpdate:
 	call sortUpdate
 
 
@@ -199,16 +209,16 @@ _sort_update_array:
 # ------------------------------------------------------------- #
 
 _penalty:
-	#
-	leal array_sort, %esi
-	movl numero_prodotti, %ecx
-	pushl penalita
-	pushl t_finale
+	# Calcolo la penalty generata dal algoritmo selezionato
+	leal array_sort, %esi				# Carico array del sort in ESI
+	movl numero_prodotti, %ecx			# Carico il numero dei prodotti in ECX
+	pushl penalty						# Carico sullo stack la variabile per la penalty
+	pushl $0							# Carico sullo stack il tempo finale (0 al inizio)
 
 	call penaltyCalc
 
-	popl t_finale
-	popl penalita
+	addl $4, %esp
+	popl penalty						# Aggiorno il valore delle variabili
 
 
 
@@ -216,26 +226,65 @@ _penalty:
 # 						NONA PARTE: OUTPUT						#
 # ------------------------------------------------------------- #
 
-_printOutput:
-	movl algoritmo, %eax
+_send_2_terminal:
 	leal array_sort, %esi
+	pushl algoritmo
 	pushl numero_prodotti
-	pushl penalita
-	pushl t_finale
+	pushl penalty
+	pushl $1
 
-	call outputPrint
+	call send2fd
 
-	addl $12, %esp
+	addl $16, %esp
 
-_saveOutput:
-	cmpl $3, numero_prodotti
+_send_2_output_file:
+	cmpl $3, numero_parametri
 	jne	_stat_reset
-	jmp _exit
+
+	# Apro il file di output in scrittura
+	movl $5, %eax						# Syscall OPEN
+	popl %ebx							# Prendo il filename dallo stack
+	movl $1, %ecx						# Modalita WRITE (O_WRITE)
+	int $0x80							# Kernel interrupt
+
+	pushl %ebx							# Carico di nuovo sullo stack il valore
+										# del file di output per una futura lettura
+
+	cmpb $0, %al						# Verifico di aver aperto correttamente il file
+	jl _file_opening_err				# Altrimenti ho un errore
+
+
+	# Truncate file (pulisco il contenuto del file)
+	movl %eax, %ebx						# Valore del file descriptor ritornato dalla OPEN
+	movl $93, %eax						# Syscall FTRUNCATE
+	movl $0, %ecx						# Nuova dimensione del file (0 per pulire il contenuto)
+	int $0x80							# Kenerl interrupt
+
+	movl %ebx, %eax						# Riporto il fd in EAX per essere pushato come argomento
+
+	# Carico i parametri sullo stack
+	leal array_sort, %esi				# Sposto in ESI il valore del array di sort
+	pushl algoritmo						# Carico algoritmo selezionato
+	pushl numero_prodotti				# Carico i numeri dei prodotti (il mio counter)
+	pushl penalty						# Carico il valore della penalty
+	pushl %eax							# Carico il file descriptor
+
+	call send2fd
+
+	# Chiudo e salvo il file
+	movl $6, %eax						# Syscall CLOSE			
+	popl %ebx							# Prendo il file descriptor dallo stack
+	int $0x80							# Kernel interrupt
+
+	addl $12, %esp						# Infine ripristino lo stack considerando che ho gia
+										# scaricato il file descriptor
 
 _stat_reset:
-	movl $0, penalita
-	movl $0, t_finale	
-	jmp	_main_menu
+	# Azzero i valori per il nuovo ciclo
+	movl $0, penalty					# Azzero la penalty
+	jmp	_main_menu						#
+
+
 
 # ------------------------------------------------------------- #
 # 				LABELS PER I MESSAGGI DI ERRORE					#

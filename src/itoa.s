@@ -3,14 +3,16 @@
 # --------------------- #
 
 .section .data
-	car: .byte 0			# la variabile car e' dichiarata di tipo byte
+	char: .byte 0			# la variabile char e' dichiarata di tipo byte
 
 .section .text
 	.global itoa
 	.type itoa, @function
-itoa:   
+itoa:  
+	pushl %ebp
+	movl %esp, %ebp
 
-	movl   $0, %ecx		# carica il numero 0 in %ecx
+	movl   $0, %ecx		# charica il numero 0 in %ecx
 
 
 continua_a_dividere:
@@ -29,16 +31,16 @@ continua_a_dividere:
 
 	movl  %ecx, %ebx	# copia in %ebx il valore di %ecx
 						# il numero di cifre che sono state 
-						# caricate nello stack
+						# charicate nello stack
 
 	jmp stampa			# salta all'etichetta stampa
 
 
 dividi:
 
-	movl  $0, %edx		# carica il numero 0 in %edx
+	movl  $0, %edx		# charica il numero 0 in %edx
 
-	movl $10, %ebx		# carica il numero 10 in %ebx
+	movl $10, %ebx		# charica il numero 10 in %ebx
 
 	divl  %ebx			# divide per %ebx (10) il numero ottenuto 
 						# concatenando il contenuto di %edx e %eax 
@@ -56,7 +58,7 @@ dividi:
 	
 stampa:
 
-	cmpl   $0, %ebx		# controlla se ci sono ancora caratteri da 
+	cmpl   $0, %ebx		# controlla se ci sono ancora charatteri da 
 						# stampare
 
 	je fine_itoa		# se %ebx=0 ho stampato tutto salto alla 
@@ -64,37 +66,37 @@ stampa:
 
 	popl  %eax			# preleva l'elemento da stampare dallo stack
 
-	movb  %al, car		# memorizza nella variabile car il valore 
+	movb  %al, char		# memorizza nella variabile char il valore 
 						# contenuto negli 8 bit meno significativi 
 						# del registro %eax; gli altri bit del 
 						# registro non ci interessano visto che una 
 						# cifra decimale e' contenuta in un solo 
 						# byte
 
-	addb  $48, car		# somma al valore car il codice ascii del 
-						# carattere 0 (zero)
+	addb  $48, char		# somma al valore char il codice ascii del 
+						# charattere 0 (zero)
   
 	decl   %ebx			# decrementa di 1 il numero di cifre da 
 						# stampare
   
 	pushw %bx			# salviamo il valore di %bx nello stack 
 						# poiche' per effettuare la stampa dobbiamo 
-						# modificare i valori dei registri come 
+						# modifichare i valori dei registri come 
 						# richiesto dalla funzione del sistema 
 						# operativo write
 
 	movl   $4, %eax
-	movl   $1, %ebx
-	leal  car, %ecx		
+	movl 20(%ebp), %ebx
+	leal  char, %ecx		
 	movl    $1, %edx
 	int $0x80
 
-	popw   %bx			# recupera il contatore dei caratteri da 
+	popw   %bx			# recupera il contatore dei charatteri da 
 						# stampare salvato nello stack prima della 
 						# chiamata alla funzione write
   
 	jmp   stampa		# ritorna all'etichetta stampa per stampare 
-						# il prossimo carattere. Notare che il 
+						# il prossimo charattere. Notare che il 
 						# blocco diistruzioni compreso tra 
 						# l'etichetta stampa e l'istruzione jmp 
 						# stampa e' un classico esempio di come 
@@ -102,4 +104,5 @@ stampa:
 
 
 fine_itoa:
+	popl %ebp
 	ret

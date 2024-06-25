@@ -3,12 +3,17 @@
 # -------------------- #
 
 .section .data	
-	# Integer
+	# Integers
+	# -----------------------------------------------------------------------
 	result:				.int 0			# Numero convertito in decimale
 	counter:			.int 0			# Numero dei prodotti contati con il '\n'
+	# -----------------------------------------------------------------------
 
 .section .bss
-	buffer:				.string			# Spazio per il buffer input
+	# Strings
+	# -----------------------------------------------------------------------
+	buffer:				.string			# Spazio per il buffer di input
+	# -----------------------------------------------------------------------
 
 .section .text
 	.global mainInit
@@ -39,7 +44,7 @@ _read_loop:
 
 	# Chiamo la funzione atoi
 	pushl result					# Salvo il valore del numero nello stack
-	call atoi						# Chiamo la funzoine
+	call atoi
 	popl result						# Riprendo il valore del numero aggiornato
 
 	jmp _read_loop					# Salto al loop iniziale
@@ -50,8 +55,8 @@ _new_line:
 _store:
 	# Salvo il numero ottenuto nella cella di memoria del array e incremento
 	movl result, %eax				# Sposto il risultato in EAX
-	movl %eax, (%esi)				# Sposto EAX nel indirizzo di memoria di ESI (array)
-	addl $4, %esi					# Incremento di una cella di memoria ESI
+	movl %eax, (%edi)				# Sposto EAX nel indirizzo di memoria di EDI (array)
+	addl $4, %edi					# Incremento di una cella di memoria EDI
 
 _reset:
 	# Resetto il contenuto di result
@@ -60,4 +65,4 @@ _reset:
 
 _return:
 	movl counter, %eax				# Sposto il valore del contatore in EAX
-	ret								# Return
+	ret
