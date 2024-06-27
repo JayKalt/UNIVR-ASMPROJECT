@@ -6,6 +6,7 @@
 	# Integers
 	# -----------------------------------------------------------------------
 	result:				.int 0			# Numero convertito in decimale
+	field_counter:		.int 0			# Numero di campi riempiti
 	counter:			.int 0			# Numero dei prodotti contati con il '\n'
 	# -----------------------------------------------------------------------
 
@@ -53,6 +54,9 @@ _read_loop:
 	call atoi
 	popl result						# Riprendo il valore del numero aggiornato
 
+	cmpl $1000, result				# Verifico che le dimensioni non superino le 4 cifre
+	jge _exit_code_ko				# In caso, ho un errore
+
 	jmp _read_loop					# Salto al loop iniziale
 
 _new_line:
@@ -63,10 +67,16 @@ _store:
 	movl result, %eax				# Sposto il risultato in EAX
 	movl %eax, (%edi)				# Sposto EAX nel indirizzo di memoria di EDI (array)
 	addl $4, %edi					# Incremento di una cella di memoria EDI
+	addl $1, field_counter
+
+	cmpb $4, field_counter
+	jge _exit_code_ko
+
 
 _reset:
 	# Resetto il contenuto di result
 	movl $0, result					# Sposto 0 in result
+	movl $0, field_counter			# Sposto 0 in field_counter
 	jmp _read_loop					# Salto al loop iniziale
 
 _exit_code_ko:
