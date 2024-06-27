@@ -28,7 +28,7 @@ _read_loop:
 	movl $1, %edx					# Lunghezza massima
 	int $0x80						# Kernel interrupt
 
-	cmp $0, %eax					# Verifico se EOF
+	cmpb $0, %al					# Verifico se EOF
 	jle _exit_code_ok				# E in caso chiudo il file
 
 	# Sposto il carattere in AL
@@ -43,7 +43,7 @@ _read_loop:
 	je _store						# Se coincide salto alla etichetta indicata
 
 	# Controllo se ho una cifra
-	cmpb $49, %al					# Comparo il carattere con '1' (Decimale ASCII: 49)
+	cmpb $48, %al					# Comparo il carattere con '0' (Decimale ASCII: 48)
 	jl _exit_code_ko				# Se AL < '1' ho un errore
 	cmpb $57, %al					# Comparo il carattere con '9' (Decimale ASCII: 58)
 	jg _exit_code_ko				# Se AL > '9' ho un errore

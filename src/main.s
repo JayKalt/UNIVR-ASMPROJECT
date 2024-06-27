@@ -101,13 +101,14 @@ _file_close:
 
 _validate_input:
 	# Verifico che il formato del file sia corretto
-	cmpb $0, %ecx
+	cmpb $0, %cl
 	jg _input_validate_err
 
 	# Verifico di avere un numero di prodotti conforme agli standard indicat (1 - 10)
 	cmpb $0, numero_prodotti
-	jg _max_prod_exceeded
-	je _empty_file_err
+	jle _empty_file_err
+	cmpb $11, numero_prodotti
+	jge _max_prod_exceeded
 
 	# Controllo che i valori letti siano conformi agli standard indicati	
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
