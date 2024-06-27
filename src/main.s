@@ -22,7 +22,7 @@
 
 	# ASCII
 	# -----------------------------------------------------------------------
-	parameters_err:				.ascii "\n\n[x] ERRORE: Parametri non correti:\n\tSolo input > $ ./pianificatore <inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
+	parameters_err:				.ascii "\n\n[x] ERRORE: Parametri non correti:\n\tSolo input     > $ ./pianificatore </path/to/inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
 	parameters_err_len:			.long . - parameters_err
 	
 	file_opening_err:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
@@ -33,6 +33,9 @@
 
 	empty_file_err:				.ascii "\n\n[x] ERRORE: File di input vuoto\n"
 	empty_file_err_len:			.long . - empty_file_err
+
+	max_prod_exceeded:			.ascii "\n\n[x] ERRORE: Numero di prodotti superiore al massimo consentito (1 - 10 prodotti)\n"
+	max_prod_exceeded_len:		.long . - empty_file_err
 
 	# -----------------------------------------------------------------------
 
@@ -97,10 +100,14 @@ _file_close:
 # ------------------------------------------------------------- #
 
 _validate_input:
+	# Verifico che il formato del file sia corretto
+	cmpb $0, %ecx
+	jg _input_validate_err
+
 	# Verifico di avere un numero di prodotti conforme agli standard indicat (1 - 10)
 	cmpb $0, numero_prodotti
+	jg _max_prod_exceeded
 	je _empty_file_err
-	jl _input_validate_err
 
 	# Controllo che i valori letti siano conformi agli standard indicati	
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
@@ -325,6 +332,11 @@ _input_validate_err:
 _empty_file_err:
 	leal empty_file_err, %ecx
 	movl empty_file_err_len, %edx
+	jmp _print_err
+
+_max_prod_exceeded:
+	leal max_prod_exceeded, %ecx
+	movl max_prod_exceeded_len, %edx
 
 _print_err:
 	# Stampo il messaggio di errore a video

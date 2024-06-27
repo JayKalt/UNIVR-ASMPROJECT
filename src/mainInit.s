@@ -28,8 +28,8 @@ _read_loop:
 	movl $1, %edx					# Lunghezza massima
 	int $0x80						# Kernel interrupt
 
-	cmp $0, %eax					# Verifico no errori / EOF
-	jle _return						# E in caso chiudo il file
+	cmp $0, %eax					# Verifico se EOF
+	jle _exit_code_ok				# E in caso chiudo il file
 
 	# Sposto il carattere in AL
 	movb buffer, %al				# Copio il carattere nel buffer in AL
@@ -44,9 +44,9 @@ _read_loop:
 
 	# Controllo se ho una cifra
 	cmpb $49, %al					# Comparo il carattere con '1' (Decimale ASCII: 49)
-	jl _return_error				# Se AL < '1' ho un errore
+	jl _exit_code_ko				# Se AL < '1' ho un errore
 	cmpb $57, %al					# Comparo il carattere con '9' (Decimale ASCII: 58)
-	jg _return_error				# Se AL > '9' ho un errore
+	jg _exit_code_ko				# Se AL > '9' ho un errore
 
 	# Chiamo la funzione atoi
 	pushl result					# Salvo il valore del numero nello stack
@@ -69,10 +69,14 @@ _reset:
 	movl $0, result					# Sposto 0 in result
 	jmp _read_loop					# Salto al loop iniziale
 
-_return_error:
-	# Imposto a -1 il counter per indicare l'errore
-	movl $-1, counter
-	
-_return:
-	movl counter, %eax				# Sposto il valore del contatore in EAX
+_exit_code_ko:
+	# Il formato di scrittura del file non rispetta gli standard
+	movl $1, %ecx					# Alzo il flag a 1
+	ret								# Torno al main
+
+_exit_code_ok:
+	# Il formato di scrittura del file riseptta gli standard quindi posso procedere
+	# con l analisi dei valori di input
+	movl $0, %ecx
+	movl counter, %eax
 	ret
