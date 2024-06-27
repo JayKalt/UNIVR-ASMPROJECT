@@ -42,6 +42,12 @@ _read_loop:
 	cmpb $44, %al					# Comparo il carattere con ',' (Decimal ASCII: 44)
 	je _store						# Se coincide salto alla etichetta indicata
 
+	# Controllo se ho una cifra
+	cmpb $49, %al					# Comparo il carattere con '1' (Decimale ASCII: 49)
+	jl _return_error				# Se AL < '1' ho un errore
+	cmpb $57, %al					# Comparo il carattere con '9' (Decimale ASCII: 58)
+	jg _return_error				# Se AL > '9' ho un errore
+
 	# Chiamo la funzione atoi
 	pushl result					# Salvo il valore del numero nello stack
 	call atoi
@@ -63,6 +69,10 @@ _reset:
 	movl $0, result					# Sposto 0 in result
 	jmp _read_loop					# Salto al loop iniziale
 
+_return_error:
+	# Imposto a -1 il counter per indicare l'errore
+	movl $-1, counter
+	
 _return:
 	movl counter, %eax				# Sposto il valore del contatore in EAX
 	ret

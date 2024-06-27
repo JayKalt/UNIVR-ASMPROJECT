@@ -30,6 +30,10 @@
 
 	input_validate_err:			.ascii "\n\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
 	input_validate_err_len:		.long . - input_validate_err
+
+	empty_file_err:				.ascii "\n\n[x] ERRORE: File di input vuoto\n"
+	empty_file_err_len:			.long . - empty_file_err
+
 	# -----------------------------------------------------------------------
 
 .section .text
@@ -93,7 +97,12 @@ _file_close:
 # ------------------------------------------------------------- #
 
 _validate_input:
-	# Controllo che i valori letti siano conformi agli standard indicati
+	# Verifico di avere un numero di prodotti conforme agli standard indicat (1 - 10)
+	cmpb $0, numero_prodotti
+	je _empty_file_err
+	jl _parameters_err
+
+	# Controllo che i valori letti siano conformi agli standard indicati	
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI questa volta
 
@@ -156,6 +165,10 @@ _sort_init:
 # ------------------------------------------------------------- #
 
 _algorithm_set_up:
+	# Verifico di poter eseguire un algoritmo (ci devono essere almeno 2 prodotti)
+	cmpb $2, numero_prodotti
+	jl _sort_update_setup
+
 	# Salvo i valori nello stack per la call 
 	leal array_sort, %esi			# Salvo in ESI indirizzo array per il sort
 	pushl numero_prodotti			# Salvo il numero prodotti nello stack (limite per il ciclo)
@@ -209,6 +222,10 @@ _sortUpdate:
 # ------------------------------------------------------------- #
 
 _penalty:
+	# Verifico di poter eseguire un algoritmo (ci devono essere almeno 2 prodotti)
+	cmpb $2, numero_prodotti
+	jl _send_2_terminal
+
 	# Calcolo la penalty generata dal algoritmo selezionato
 	leal array_sort, %esi				# Carico array del sort in ESI
 	movl numero_prodotti, %ecx			# Carico il numero dei prodotti in ECX
@@ -304,6 +321,10 @@ _input_validate_err:
 	leal input_validate_err, %ecx
 	movl input_validate_err_len, %edx
 	jmp _print_err
+
+_empty_file_err:
+	leal empty_file_err, %ecx
+	movl empty_file_err_len, %edx
 
 _print_err:
 	# Stampo il messaggio di errore a video
