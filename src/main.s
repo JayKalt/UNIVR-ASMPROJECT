@@ -22,20 +22,20 @@
 
 	# ASCII
 	# -----------------------------------------------------------------------
-	parameters_err:				.ascii "\n\n[x] ERRORE: Parametri non correti:\n\tSolo input     > $ ./pianificatore </path/to/inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
+	parameters_err:				.ascii "\n[x] ERRORE: Parametri non correti:\n\tSolo input     > $ ./pianificatore </path/to/inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
 	parameters_err_len:			.long . - parameters_err
 	
-	file_opening_err:			.ascii "\n\n[x] ERRORE: Apertura file fallita\n"
+	file_opening_err:			.ascii "\n[x] ERRORE: Apertura file fallita\n"
 	file_opening_err_len:		.long . - file_opening_err
 
-	input_validate_err:			.ascii "\n\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
+	input_validate_err:			.ascii "\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
 	input_validate_err_len:		.long . - input_validate_err
 
-	empty_file_err:				.ascii "\n\n[x] ERRORE: File di input vuoto\n"
+	empty_file_err:				.ascii "\n[x] ERRORE: File di input vuoto\n"
 	empty_file_err_len:			.long . - empty_file_err
 
-	max_prod_exceeded:			.ascii "\n\n[x] ERRORE: Numero di prodotti superiore al massimo consentito (1 - 10 prodotti)\n"
-	max_prod_exceeded_len:		.long . - empty_file_err
+	max_prod_exceeded:			.ascii "\n[x] ERRORE: Numero di prodotti superiore al massimo consentito (1 - 10 prodotti)\n"
+	max_prod_exceeded_len:		.long . - max_prod_exceeded
 
 	# -----------------------------------------------------------------------
 
