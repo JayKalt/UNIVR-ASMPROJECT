@@ -22,20 +22,23 @@
 
 	# ASCII
 	# -----------------------------------------------------------------------
-	parameters_err:				.ascii "\n[x] ERRORE: Parametri non correti:\n\tSolo input     > $ ./pianificatore </path/to/inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
+	parameters_err:				.ascii "[x] ERRORE: Parametri non correti:\n\tSolo input     > $ ./pianificatore </path/to/inputfile.txt>\n\tInput + output > $ ./pianificatore </path/to/inputfile.txt> </path/to/outputfile.txt>\n"
 	parameters_err_len:			.long . - parameters_err
 	
-	file_opening_err:			.ascii "\n[x] ERRORE: Apertura file fallita\n"
+	file_opening_err:			.ascii "[x] ERRORE: Apertura file fallita\n"
 	file_opening_err_len:		.long . - file_opening_err
 
-	input_validate_err:			.ascii "\n[x] ERRORE: Parametri inseriti non conformi agli standard\n"
+	input_validate_err:			.ascii "[x] ERRORE: Parametri inseriti non conformi agli standard\n"
 	input_validate_err_len:		.long . - input_validate_err
 
-	empty_file_err:				.ascii "\n[x] ERRORE: File di input vuoto\n"
+	empty_file_err:				.ascii "[x] ERRORE: File di input vuoto\n"
 	empty_file_err_len:			.long . - empty_file_err
 
-	max_prod_exceeded:			.ascii "\n[x] ERRORE: Numero di prodotti superiore al massimo consentito (1 - 10 prodotti)\n"
+	max_prod_exceeded:			.ascii "[x] ERRORE: Numero di prodotti superiore al massimo consentito (1 - 10 prodotti)\n"
 	max_prod_exceeded_len:		.long . - max_prod_exceeded
+
+	only_one_product:			.ascii "[x] WARNING: Nel file di input e' presente un solo prodotto\n"
+	only_one_product_len:		.long . - only_one_product
 
 	# -----------------------------------------------------------------------
 
@@ -99,17 +102,27 @@ _file_close:
 # 			TERZA PARTE: CONTROLLO DEI VALORI INSERITI			#
 # ------------------------------------------------------------- #
 
-_validate_input:
+_validate_file_format:
 	# Verifico che il formato del file sia corretto
 	cmpb $0, %cl
 	jg _input_validate_err
 
+_validate_product_number:
 	# Verifico di avere un numero di prodotti conforme agli standard indicat (1 - 10)
 	cmpb $0, numero_prodotti
 	jle _empty_file_err
 	cmpb $11, numero_prodotti
 	jge _max_prod_exceeded
+	cmpb $1, numero_prodotti
+	jg _validate_input
 
+	movl $4, %eax
+	movl $1, %ebx
+	leal only_one_product, %ecx
+	movl only_one_product_len, %edx
+	int $0x80
+
+_validate_input:
 	# Controllo che i valori letti siano conformi agli standard indicati	
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
 	leal array_prodotti, %esi		# Salvo indirizzo array in ESI questa volta
@@ -338,6 +351,7 @@ _empty_file_err:
 _max_prod_exceeded:
 	leal max_prod_exceeded, %ecx
 	movl max_prod_exceeded_len, %edx
+	jmp _print_err
 
 _print_err:
 	# Stampo il messaggio di errore a video
