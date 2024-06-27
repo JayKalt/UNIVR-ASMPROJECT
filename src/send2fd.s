@@ -42,7 +42,7 @@ send2fd:
 
 _select_header:
 	# Verifico algoritmo selezionato
-	cmpb $1, 20(%ebp)
+	cmpb $2, 20(%ebp)
 	jne _edf_header
 
 _hpf_header:

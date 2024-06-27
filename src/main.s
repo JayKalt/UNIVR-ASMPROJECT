@@ -165,16 +165,16 @@ _sort_init_set_up:
 _offset_set_up:
 	# Inizializzo offset per il campo a seconda del algoritmo scelto
 	cmpb $1, algoritmo
-	jne _edf_select
-
-_hpf_select:
-	# Imposto campo di HPF (priorita -> offset: +12 byte)
-	addl $12, %esi					# Mi sposto al inidirizzo della priorita
-	jmp _sort_init
+	jne _hpf_select
 
 _edf_select:
 	# Imposto campo di EDF (scadenza -> offset: +8  byte)
 	addl $8, %esi					# Mi sposto al inidirizzo della priorita
+	jmp _sort_init
+
+_hpf_select:
+	# Imposto campo di HPF (priorita -> offset: +12 byte)
+	addl $12, %esi					# Mi sposto al inidirizzo della priorita
 
 _sort_init:
 	call sortInit
@@ -196,16 +196,16 @@ _algorithm_set_up:
 
 	# Scelgo algoritmo
 	cmpb $1, algoritmo
-	jne _edf
-
-_hpf:
-	# Chiamo algoritmo HPF
-	call hpf
-	jmp _stack_restore
+	jne _hpf
 
 _edf:
 	# Chiamo algoritmo EDF
 	call edf
+	jmp _stack_restore
+
+_hpf:
+	# Chiamo algoritmo HPF
+	call hpf
 
 _stack_restore:
 	# Ripristino stack
@@ -224,14 +224,14 @@ _sort_update_setup:
 
 	# Verifico algoritmo
 	cmpb $1, algoritmo
-	jne _select8
-
-_select12:
-	movl $12, %edx
-	jmp _sortUpdate
+	jne _select12
 
 _select8:
 	movl $8, %edx
+	jmp _sortUpdate
+
+_select12:
+	movl $12, %edx
 
 _sortUpdate:
 	call sortUpdate
