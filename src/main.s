@@ -100,7 +100,7 @@ _validate_input:
 	# Verifico di avere un numero di prodotti conforme agli standard indicat (1 - 10)
 	cmpb $0, numero_prodotti
 	je _empty_file_err
-	jl _parameters_err
+	jl _input_validate_err
 
 	# Controllo che i valori letti siano conformi agli standard indicati	
 	movl numero_prodotti, %eax		# Salvo il numero dei prodotti in EAX
